@@ -123,5 +123,5 @@ docs/           spec.md · estado.md · decisiones.md
 
 ## Estado actual
 
-**Fase 0 — Cimientos.** Puntos 1 a 9 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox verificada contra el servidor, shell con 5 pestañas y pantallas vacías. Falta desplegar en Vercel (10) e instalarla en el móvil (11). Ver `docs/estado.md`.
+**Fase 0 — Cimientos.** Puntos 1 a 9 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox verificada contra el servidor, shell con 5 pestañas y pantallas vacías. Desplegada en https://app-my-life.vercel.app. Falta solo instalarla en el móvil (11). Ver `docs/estado.md`.
 
