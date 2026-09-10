@@ -37,8 +37,9 @@
 
 ## Notas para la siguiente sesión
 
-- **Bloqueo actual:** los puntos 5 y 6 necesitan que exista el proyecto de Supabase. Hacen falta `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en un `.env` (plantilla en `.env.example`), y el `project-ref` para `supabase gen types typescript`.
-- Las migraciones están escritas pero **no aplicadas**. Revisar la política RLS de `exercises` antes de aplicar: es la única tabla que permite filas globales (`user_id is null`).
+- **Bloqueo actual: las migraciones siguen sin aplicar.** El proyecto de Supabase existe (`wcmtrjjalwbchrmlsvow`) y el `.env` local ya tiene URL y clave anon, pero la base de datos está **vacía: cero tablas, cero migraciones**. Hasta que se apliquen, el punto 6 (`supabase gen types`) generaría un archivo vacío.
+- **Revisión de RLS hecha el 10/09/2026, sin hallazgos.** Las diez tablas tienen `enable row level security` y políticas. La duda sobre `exercises` queda resuelta: `select` permite las filas globales (`user_id is null or auth.uid() = user_id`), pero `insert`, `update` y `delete` exigen `auth.uid() = user_id`, que con `user_id` nulo evalúa a NULL y RLS lo trata como falso — nadie puede crear, modificar ni borrar el catálogo global desde el cliente. `profiles` no lleva `user_id` porque su clave primaria *es* el id del usuario.
+- La CLI de Supabase **no está instalada** en esta máquina (`supabase: command not found`). Hace falta para el punto 6.
 - **Los colores siguen sin confirmar contra el lienzo.** Ya están implementados en `src/styles/tokens.css` y se ven todos juntos en la pantalla provisional de `src/app/App.tsx`. Mirarlos en el iPhone, no en el monitor: el brillo y el punto negro cambian el juicio. Si alguno falla, se cambia solo en `tokens.css`.
 - `src/app/App.tsx` es **provisional y se borra** en el punto 8: es una hoja de contraste de tokens, no el shell. El shell real es `AppShell` + `TabBar` de `design.md` §6.
 - **En Windows, `npm run build` falla con `EBUSY` si `npm run dev` está corriendo** (`rmdir dist\assets`). Con `devOptions: { enabled: true }` el plugin PWA mantiene abierto `dist`. Parar el dev server antes de compilar; no es un fallo de configuración.
