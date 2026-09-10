@@ -21,13 +21,14 @@
 - [x] **Punto 4** — `vite-plugin-pwa`: manifest en español, iconos generados, service worker con precaché del app-shell
 - [x] **Punto 5** — Cliente de Supabase, `AuthProvider`, `AuthGate` y pantalla de acceso con email y contraseña
 - [x] Repositorio propio en `aleemarttn/App-My-Life` (10/09/2026), anidado dentro de `Proyectos-Personales-prueba`, que lo ignora
-- [x] `core/ui/Button` — el primero de los cuatro componentes que `design.md` §6 pide para la fase 0
+- [x] `core/ui/Button` y `core/ui/SyncBadge`
+- [x] **Punto 7** — `core/db` completo: esquema de Dexie con las diez tablas, `outbox`, motor de subida y bajada, y **24 tests en verde**
 
 ### En curso
 - [ ] **Punto 6 — a medias.** `src/core/supabase/types.ts` ya está generado y el cliente va tipado, pero se generó desde el MCP de Supabase, no con la CLI. Hay que rehacerlo con la CLI en cuanto esté instalada, y **regenerarlo después de cada migración**.
+- [ ] **Punto 7 — sin probar contra el servidor real.** Los tests cubren la lógica de la cola con un doble; falta que un registro creado en la app llegue de verdad a Supabase. Es lo que verifica el punto 11.
 
 ### Pendiente (en este orden)
-7. [ ] `core/db`: esquema de Dexie, tabla `outbox`, motor de sincronización
 8. [ ] `app/`: shell, router, barra de navegación inferior de 5 pestañas, avatar de Perfil en cabecera
 9. [ ] Pantallas vacías de los cinco destinos (placeholders)
 10. [ ] Despliegue en Netlify + variables de entorno
@@ -37,7 +38,10 @@
 
 ## Notas para la siguiente sesión
 
-- **BLOQUEO: `auth.users` está vacío, no hay ninguna cuenta.** Sin ella no se puede pasar de la pantalla de acceso ni probar nada de lo que viene después. Se crea una sola vez desde el panel: *Authentication → Users → Add user*, con «Auto Confirm User» marcado (si no, Supabase pide confirmar el email y el login devuelve `email not confirmed`). El trigger `on_auth_user_created` crea la fila de `profiles` sola.
+- **Cuenta creada y login verificado** el 10/09/2026 (`alejandromartin333@gmail.com`). El trigger `on_auth_user_created` creó la fila de `profiles` sola, lo que confirma de paso que el `revoke execute` de la migración `harden_functions` no rompió el trigger: se ejecuta como propietario de la tabla, no como el cliente.
+- **Cómo se prueba el punto 11 hoy:** entrar, ir a la tarjeta «Sincronización» de `DesignCheck`, poner el navegador en modo sin conexión (F12 → Network → Offline), pulsar «Crear ejercicio de prueba» y ver subir el contador de pendientes. Recuperar la red y comprobar que baja a cero y que la fila aparece en la tabla `exercises` de Supabase.
+- **Sin borrado de la base local al cerrar sesión, y es deliberado**: ahí puede haber registros sin subir. Consecuencia conocida: si algún día entrara un usuario distinto en el mismo dispositivo, vería los datos locales del anterior. No es un problema real con un solo usuario (D4), pero está aquí escrito para que no sorprenda.
+- **El bundle va por 160 kB gzip** y el build ya avisa de que el trozo pasa de 500 kB sin comprimir. No es urgente, pero hay que atacarlo antes de que entre Recharts: la vía es dividir por rutas en el punto 8 y la carga diferida de gráficas que ya exige `CLAUDE.md`.
 - **Los nombres de archivo de las migraciones se renombraron** para que coincidan con las versiones que quedaron registradas en el servidor (`20260910000747`, `...826`, `...931`). Se aplicaron por MCP, que asigna su propia marca de tiempo; sin renombrar, un futuro `supabase db push` las habría creído pendientes y habría intentado repetirlas.
 - **Revisión de RLS hecha el 10/09/2026, sin hallazgos.** Las diez tablas tienen `enable row level security` y políticas. La duda sobre `exercises` queda resuelta: `select` permite las filas globales (`user_id is null or auth.uid() = user_id`), pero `insert`, `update` y `delete` exigen `auth.uid() = user_id`, que con `user_id` nulo evalúa a NULL y RLS lo trata como falso — nadie puede crear, modificar ni borrar el catálogo global desde el cliente. `profiles` no lleva `user_id` porque su clave primaria *es* el id del usuario.
 - El linter de seguridad de Supabase queda con **un solo aviso, y no es nuestro**: `public.rls_auto_enable()` es una función de la plataforma (propiedad de `postgres`) que activa RLS en toda tabla nueva de `public`. No tocarla. Los otros dos avisos se corrigieron en la migración `harden_functions`.
@@ -59,3 +63,4 @@
 | 09/09/2026 | Planificación completa, especificación v0.4, migraciones de fase 0 y 1, sistema de diseño | Listo para crear el proyecto de Supabase y arrancar Vite |
 | 10/09/2026 | Puntos 2–4: andamiaje Vite + React + TS estricto + Tailwind 4 con tokens + PWA (manifest, iconos, SW). D15 y D16. `npm run build` en verde | Parado tras el punto 4 a petición propia, para validar el color en el móvil antes de tocar Dexie |
 | 10/09/2026 | Punto 1 (migraciones aplicadas + `harden_functions`), punto 5 (cliente, `AuthProvider`, login) y tipos generados. Repo propio creado y subido | Bloqueado en crear la cuenta de `auth.users` desde el panel; después, punto 7 (Dexie y outbox) |
+| 10/09/2026 | Punto 7: `core/db` entero — UUID v7 propio, esquema de Dexie, `outbox` transaccional, subida con retroceso exponencial, bajada incremental, 24 tests. D17 y D18. `SyncBadge` y panel de pruebas | Falta validar contra el servidor real (punto 11). Luego, punto 8: shell, router y barra de 5 pestañas |

@@ -1,6 +1,7 @@
 import { DesignCheck } from "./DesignCheck";
 import { LoginScreen } from "./auth/LoginScreen";
 import { useAuth } from "./auth/useAuth";
+import { useSyncLifecycle } from "./useSyncLifecycle";
 
 /**
  * Decide que ve el usuario segun haya sesion o no.
@@ -12,6 +13,7 @@ import { useAuth } from "./auth/useAuth";
  */
 export function AuthGate() {
   const { session, loading } = useAuth();
+  useSyncLifecycle();
 
   if (loading) {
     return <div className="min-h-dvh bg-bg" />;

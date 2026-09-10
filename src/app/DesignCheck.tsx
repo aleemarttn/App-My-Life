@@ -1,5 +1,7 @@
 import { supabase } from "@/core/supabase/client";
 import { Button } from "@/core/ui/Button";
+import { SyncBadge } from "@/core/ui/SyncBadge";
+import { SyncPanel } from "./SyncPanel";
 import { useAuth } from "./auth/useAuth";
 
 /**
@@ -46,13 +48,16 @@ export function DesignCheck() {
       <header className="pt-safe sticky top-0 z-10 border-b border-border bg-bg/90 backdrop-blur">
         <div className="flex items-center justify-between px-4 py-3">
           <h1 className="text-title">My Life</h1>
-          <button
-            type="button"
-            aria-label="Perfil"
-            className="size-touch grid place-items-center rounded-chip border border-border bg-surface-2 text-label text-text-muted"
-          >
-            {iniciales}
-          </button>
+          <div className="flex items-center gap-2">
+            <SyncBadge />
+            <button
+              type="button"
+              aria-label="Perfil"
+              className="size-touch grid place-items-center rounded-chip border border-border bg-surface-2 text-label text-text-muted"
+            >
+              {iniciales}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -74,6 +79,8 @@ export function DesignCheck() {
             Cerrar sesion
           </Button>
         </section>
+
+        <SyncPanel />
 
         {/* ---- Color ---- */}
         <section className="rounded-card border border-border bg-surface p-4">

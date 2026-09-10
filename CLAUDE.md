@@ -3,7 +3,7 @@
 PWA personal de registro y control. Cuatro pestañas —entrenamiento, nutrición, economía y coche— más **Perfil** en la cabecera, que contiene cuerpo y salud.
 Usuario único (Alejandro), sin publicación en App Store. Español, tema oscuro por defecto.
 
----
+\---
 
 ## PROTOCOLO OBLIGATORIO DE INICIO DE SESIÓN
 
@@ -23,34 +23,34 @@ No asumas que el estado del proyecto es el que recuerdas de una sesión anterior
 2. Si se ha tomado una decisión de diseño, añádela a `docs/decisiones.md` con fecha y **motivo**. Append-only, nunca se reescribe una decisión antigua.
 3. Si la implementación se ha desviado de `docs/spec.md`, actualiza la especificación. La spec es la fuente de verdad, no el código.
 
----
+\---
 
 ## Documentación
 
-| Archivo | Contenido | Cuándo leerlo |
-|---|---|---|
-| `CLAUDE.md` | Este archivo. Reglas e índice. | Siempre (automático) |
-| `docs/spec.md` | Especificación funcional y modelo de datos completo | Al tocar cualquier módulo |
-| `docs/design.md` | Sistema visual: tokens, tipografía, componentes, zonas táctiles | Al tocar cualquier interfaz |
-| `docs/estado.md` | Estado actual del proyecto | Al arrancar cualquier sesión |
-| `docs/decisiones.md` | Log de decisiones con fecha y motivo | Al cambiar de rumbo |
+|Archivo|Contenido|Cuándo leerlo|
+|-|-|-|
+|`CLAUDE.md`|Este archivo. Reglas e índice.|Siempre (automático)|
+|`docs/spec.md`|Especificación funcional y modelo de datos completo|Al tocar cualquier módulo|
+|`docs/design.md`|Sistema visual: tokens, tipografía, componentes, zonas táctiles|Al tocar cualquier interfaz|
+|`docs/estado.md`|Estado actual del proyecto|Al arrancar cualquier sesión|
+|`docs/decisiones.md`|Log de decisiones con fecha y motivo|Al cambiar de rumbo|
 
 Este archivo se mantiene **por debajo de 150 líneas** a propósito: se carga en cada turno de la conversación. El detalle vive en `docs/`, que se lee bajo demanda.
 
----
+\---
 
 ## Stack
 
-- **Frontend:** Vite + React + TypeScript
-- **Gráficas:** Recharts, con carga diferida y envuelto en `core/ui/MetricChart`
-- **PWA:** vite-plugin-pwa (Workbox)
-- **Estilos:** Tailwind CSS
-- **Estado servidor:** TanStack Query
-- **Persistencia local:** Dexie (IndexedDB) — obligatorio, la app es offline-first
-- **Excel:** SheetJS, import y export en el navegador
-- **Backend:** Supabase — Postgres, Auth, RLS, Storage, Edge Functions, pg_cron
-- **Hosting:** Netlify
-- **Notificaciones:** Telegram Bot API (principal) + Web Push (secundaria)
+* **Frontend:** Vite + React + TypeScript
+* **Gráficas:** Recharts, con carga diferida y envuelto en `core/ui/MetricChart`
+* **PWA:** vite-plugin-pwa (Workbox)
+* **Estilos:** Tailwind CSS
+* **Estado servidor:** TanStack Query
+* **Persistencia local:** Dexie (IndexedDB) — obligatorio, la app es offline-first
+* **Excel:** SheetJS, import y export en el navegador
+* **Backend:** Supabase — Postgres, Auth, RLS, Storage, Edge Functions, pg\_cron
+* **Hosting:** Netlify
+* **Notificaciones:** Telegram Bot API (principal) + Web Push (secundaria)
 
 ## Estructura
 
@@ -65,58 +65,63 @@ supabase/
 docs/           spec.md · estado.md · decisiones.md
 ```
 
----
+\---
 
 ## REGLAS INNEGOCIABLES
 
 **Arquitectura**
-- Un módulo **nunca** importa de otro módulo. Lo compartido sube a `core/`.
-- La UI **nunca** escribe directamente en Supabase. Todo pasa por `core/db` (Dexie + outbox).
-- La UI **siempre** lee de Dexie. Nunca espera a la red para pintar.
-- Los `id` se generan en cliente (UUID v7). Nada de `serial` ni `identity`.
+
+* Un módulo **nunca** importa de otro módulo. Lo compartido sube a `core/`.
+* La UI **nunca** escribe directamente en Supabase. Todo pasa por `core/db` (Dexie + outbox).
+* La UI **siempre** lee de Dexie. Nunca espera a la red para pintar.
+* Los `id` se generan en cliente (UUID v7). Nada de `serial` ni `identity`.
 
 **Datos**
-- Toda tabla nueva lleva `user_id` y su política RLS **en la misma migración**. Sin excepciones.
-- Migraciones versionadas en `supabase/migrations/`. Nunca cambios a mano en el panel de Supabase.
-- Los datos derivados (tonelaje, e1RM, consumo L/100 km, medias móviles) **nunca se almacenan**.
-- Toda agregación que alimente una gráfica se calcula **en cliente**, sobre datos de Dexie. Las vistas de Postgres son solo para servidor (exportaciones, `scheduler-tick`, agente entrenador). Motivo: las gráficas deben funcionar sin cobertura.
-- La `outbox` no borra un registro hasta recibir confirmación del servidor.
+
+* Toda tabla nueva lleva `user\_id` y su política RLS **en la misma migración**. Sin excepciones.
+* Migraciones versionadas en `supabase/migrations/`. Nunca cambios a mano en el panel de Supabase.
+* Los datos derivados (tonelaje, e1RM, consumo L/100 km, medias móviles) **nunca se almacenan**.
+* Toda agregación que alimente una gráfica se calcula **en cliente**, sobre datos de Dexie. Las vistas de Postgres son solo para servidor (exportaciones, `scheduler-tick`, agente entrenador). Motivo: las gráficas deben funcionar sin cobertura.
+* La `outbox` no borra un registro hasta recibir confirmación del servidor.
 
 **Seguridad**
-- Ninguna clave secreta en el bundle del cliente. Tokens de Telegram, claves de LLM y claves de servicio viven solo en variables de entorno de Edge Functions.
-- La clave `anon` de Supabase es pública por diseño: la seguridad vive en las políticas RLS.
-- El bucket de fotos corporales es **privado**. Acceso solo por URLs firmadas de caducidad corta.
-- El webhook de Telegram valida `secret_token` de cabecera y lista blanca de `chat_id`.
+
+* Ninguna clave secreta en el bundle del cliente. Tokens de Telegram, claves de LLM y claves de servicio viven solo en variables de entorno de Edge Functions.
+* La clave `anon` de Supabase es pública por diseño: la seguridad vive en las políticas RLS.
+* El bucket de fotos corporales es **privado**. Acceso solo por URLs firmadas de caducidad corta.
+* El webhook de Telegram valida `secret\_token` de cabecera y lista blanca de `chat\_id`.
 
 **Producto**
-- No se empieza una fase sin cumplir el criterio de salida de la anterior (`docs/spec.md` §10).
-- Nada de UI multiusuario, onboarding, planes ni facturación. El multi-tenant vive solo en el modelo de datos.
-- Ante la duda entre una feature más y menos fricción de registro, gana **menos fricción**. La app muere si registrar cuesta.
 
----
+* No se empieza una fase sin cumplir el criterio de salida de la anterior (`docs/spec.md` §10).
+* Nada de UI multiusuario, onboarding, planes ni facturación. El multi-tenant vive solo en el modelo de datos.
+* Ante la duda entre una feature más y menos fricción de registro, gana **menos fricción**. La app muere si registrar cuesta.
+
+\---
 
 ## Convenciones de código
 
-- TypeScript estricto. `any` prohibido salvo justificación en comentario.
-- Tipos de base de datos generados con `supabase gen types typescript`, nunca escritos a mano.
-- Nombres de tablas y columnas en `snake_case` e **inglés**. Textos de la interfaz en **español**.
-- Componentes en `PascalCase`, hooks en `useCamelCase`.
-- Un componente por archivo. Si pasa de 200 líneas, se parte.
-- Sin librerías de UI pesadas: Tailwind y componentes propios en `core/ui`.
-- Gráficas: **solo** a través de `core/ui/MetricChart`. Ningún módulo instancia Recharts directamente.
-- El bundle de gráficas se carga con `React.lazy`. Nunca debe entrar en el arranque del modo entreno.
-- Toda entidad con historial (ejercicio, peso, medida, categoría de gasto, consumo) usa el patrón `DetailView` de `docs/spec.md` §2.8. No se diseñan pantallas de detalle a medida.
+* TypeScript estricto. `any` prohibido salvo justificación en comentario.
+* Tipos de base de datos generados con `supabase gen types typescript`, nunca escritos a mano.
+* Nombres de tablas y columnas en `snake\_case` e **inglés**. Textos de la interfaz en **español**.
+* Componentes en `PascalCase`, hooks en `useCamelCase`.
+* Un componente por archivo. Si pasa de 200 líneas, se parte.
+* Sin librerías de UI pesadas: Tailwind y componentes propios en `core/ui`.
+* Gráficas: **solo** a través de `core/ui/MetricChart`. Ningún módulo instancia Recharts directamente.
+* El bundle de gráficas se carga con `React.lazy`. Nunca debe entrar en el arranque del modo entreno.
+* Toda entidad con historial (ejercicio, peso, medida, categoría de gasto, consumo) usa el patrón `DetailView` de `docs/spec.md` §2.8. No se diseñan pantallas de detalle a medida.
 
 ## Qué NO hacer
 
-- No instalar dependencias sin justificarlo primero.
-- No refactorizar código que no forma parte de la tarea en curso.
-- No crear archivos de documentación nuevos (README, notas) salvo petición explícita.
-- No añadir tests a módulos que aún no tienen el comportamiento cerrado; sí en `core/db` y en los parsers.
-- No "mejorar" la especificación por iniciativa propia: si algo parece mal, se dice y se decide antes de tocarlo.
+* No instalar dependencias sin justificarlo primero.
+* No refactorizar código que no forma parte de la tarea en curso.
+* No crear archivos de documentación nuevos (README, notas) salvo petición explícita.
+* No añadir tests a módulos que aún no tienen el comportamiento cerrado; sí en `core/db` y en los parsers.
+* No "mejorar" la especificación por iniciativa propia: si algo parece mal, se dice y se decide antes de tocarlo.
 
----
+\---
 
 ## Estado actual
 
-**Fase 0 — Cimientos.** Repositorio recién iniciado. Ver `docs/estado.md`.
+**Fase 0 — Cimientos.** Puntos 1 a 7 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox. Falta el shell (8-9), Netlify (10) y la prueba de aceptación (11). Ver `docs/estado.md`.
+
