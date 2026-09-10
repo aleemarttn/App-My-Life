@@ -40,6 +40,12 @@
 
 ## Notas para la siguiente sesión
 
+- 🔴 **INCIDENTE DE SEGURIDAD — 11/09/2026. La clave `service_role` se publicó en el bundle del cliente.** En el primer despliegue a Vercel las dos variables se pegaron cruzadas: `VITE_SUPABASE_URL` recibió la clave anon y `VITE_SUPABASE_ANON_KEY` recibió la **`service_role`**, que se salta todas las políticas RLS. El resultado quedó accesible sin autenticación en `/assets/db-*.js`.
+  **Qué hay que hacer, y en este orden:** (1) **rotar la `service_role`** en Supabase — mientras no se rote, sigue siendo válida aunque se borre el despliegue; (2) corregir las dos variables en Vercel; (3) volver a desplegar; (4) **borrar los despliegues antiguos** en Vercel, porque conservan su propia URL permanente y siguen sirviendo el bundle comprometido.
+  **Ojo:** corregir el código NO retira la clave del despliegue ya publicado. Vite la incrusta al compilar, así que solo desaparece con un despliegue nuevo hecho con las variables correctas.
+  **Por qué no saltó nada:** la comprobación anterior solo miraba si las variables estaban vacías, y ambas tenían contenido. Corregido: `src/app/revisarConfig.ts` decodifica los JWT y se niega a arrancar si el rol no es `anon` o si la URL no es una URL. Con 7 tests, uno de ellos reproduce el cruce exacto.
+  **Y por qué se veía todo negro:** `createClient` reventaba con la URL inválida al importarse el módulo, y el `import()` dinámico no tenía `.catch()`. Ahora lo tiene.
+
 - **Cuenta creada y login verificado** el 10/09/2026 (`alejandromartin333@gmail.com`). El trigger `on_auth_user_created` creó la fila de `profiles` sola, lo que confirma de paso que el `revoke execute` de la migración `harden_functions` no rompió el trigger: se ejecuta como propietario de la tabla, no como el cliente.
 - **SIN VERIFICACIÓN VISUAL.** Todo lo del shell y las pantallas compila, pasa el lint, pasa los 31 tests y las ocho rutas responden 200 sobre el build de producción, pero **nadie lo ha visto pintado**: la extensión de Chrome no estaba conectada. Lo primero al retomar es abrir la app y mirarla. Los sospechosos habituales serían los iconos de la barra (dibujados a mano, sin ver) y el hueco inferior del contenido.
 - **El panel de sincronización se mudó** a Perfil, y `DesignCheck` a Perfil → Sistema de diseño. Ambos siguen siendo provisionales y se borran al cerrar la fase 0.
