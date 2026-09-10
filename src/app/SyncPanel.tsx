@@ -29,9 +29,9 @@ export function SyncPanel() {
 
   return (
     <section className="rounded-card border border-border bg-surface p-4">
-      <h2 className="text-title mb-1">Sincronizacion</h2>
+      <h2 className="text-title mb-1">Sincronización</h2>
       <p className="text-caption mb-4 text-text-muted">
-        Modo avion → crear → cerrar la app → volver la red → comprobar Supabase.
+        Modo avión → crear → cerrar la app → recuperar la red → comprobar Supabase.
       </p>
 
       <dl className="text-body mb-4 grid grid-cols-2 gap-y-2">
@@ -49,15 +49,15 @@ export function SyncPanel() {
           {estado.sincronizando ? (
             <span className="text-info">sincronizando…</span>
           ) : estado.ultimoError ? (
-            <span className="text-danger">sin conexion</span>
+            <span className="text-danger">sin conexión</span>
           ) : (
-            <span className="text-accent">al dia</span>
+            <span className="text-accent">al día</span>
           )}
         </dd>
       </dl>
 
       {ultimo && (
-        <p className="text-caption mb-3 text-text-faint">Ultimo creado: {ultimo}</p>
+        <p className="text-caption mb-3 text-text-faint">Último creado: {ultimo}</p>
       )}
 
       <div className="space-y-2">

@@ -11,8 +11,8 @@ import { EmptyState } from "@/core/ui/EmptyState";
 export function CarScreen() {
   return (
     <EmptyState
-      titulo="Sin vehiculo"
-      descripcion="La fase 2 traera el odometro, los mantenimientos con aviso por kilometros o por fecha, y el consumo real en L/100 km."
+      titulo="Sin vehículo"
+      descripcion="La fase 2 traerá el odómetro, los mantenimientos con aviso por kilómetros o por fecha, y el consumo real en L/100 km."
     />
   );
 }

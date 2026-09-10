@@ -14,9 +14,9 @@ import { DatosCard } from "./DatosCard";
 
 const SECCIONES = [
   { titulo: "Cuerpo", detalle: "Peso, medidas, fotos y comparador", fase: "fase 1.5" },
-  { titulo: "Salud", detalle: "Datos de Salud de iOS via Atajos", fase: "fase 3" },
+  { titulo: "Salud", detalle: "Datos de Salud de iOS vía Atajos", fase: "fase 3" },
   { titulo: "Objetivos", detalle: "Peso objetivo, macros y RIR de referencia", fase: "fase 1.5" },
-  { titulo: "Ajustes", detalle: "Cronometro, unidades, tema y Telegram", fase: "fase 1" },
+  { titulo: "Ajustes", detalle: "Cronómetro, unidades, tema y Telegram", fase: "fase 1" },
 ] as const;
 
 export function ProfileScreen() {
@@ -26,7 +26,7 @@ export function ProfileScreen() {
     <div className="space-y-3">
       <Card titulo="Cuenta">
         <p className="text-body break-all text-accent">{session?.user.email}</p>
-        <p className="text-caption mt-1 text-text-muted">Usuario unico. Sin registro ni roles (D4).</p>
+        <p className="text-caption mt-1 text-text-muted">Usuario único. Sin registro ni roles (D4).</p>
       </Card>
 
       <SyncPanel />

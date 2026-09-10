@@ -20,7 +20,7 @@ export interface DestinoTab {
 export function TabBar({ destinos }: { destinos: DestinoTab[] }) {
   return (
     <nav
-      aria-label="Navegacion principal"
+      aria-label="Navegación principal"
       className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface"
     >
       <ul className="flex">

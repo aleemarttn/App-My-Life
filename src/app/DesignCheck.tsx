@@ -17,10 +17,10 @@ const COLORES = [
   ["--color-text", "#F2F4F7", "texto primario"],
   ["--color-text-muted", "#9BA3AF", "secundario, etiquetas"],
   ["--color-text-faint", "#626B78", "solo marcas de eje"],
-  ["--color-accent", "#4ADE80", "accion primaria"],
+  ["--color-accent", "#4ADE80", "acción primaria"],
   ["--color-accent-press", "#22C55E", "estado pulsado"],
-  ["--color-danger", "#F87171", "alertas, desvios"],
-  ["--color-warning", "#FBBF24", "umbrales proximos"],
+  ["--color-danger", "#F87171", "alertas, desvíos"],
+  ["--color-warning", "#FBBF24", "umbrales próximos"],
   ["--color-info", "#60A5FA", "serie secundaria"],
 ] as const;
 
@@ -54,7 +54,7 @@ export function DesignCheck() {
         </ul>
       </Card>
 
-      <Card titulo="Tipografia">
+      <Card titulo="Tipografía">
         <ul className="space-y-4">
           {TIPOGRAFIA.map(([clase, medidas, muestra]) => (
             <li key={clase}>
@@ -67,9 +67,9 @@ export function DesignCheck() {
         </ul>
       </Card>
 
-      <Card titulo="Zonas tactiles">
+      <Card titulo="Zonas táctiles">
         <p className="text-caption mb-3 text-text-muted">
-          Comprobar con el pulgar, no con el raton.
+          Comprobar con el pulgar, no con el ratón.
         </p>
 
         <div className="mb-2 flex items-center gap-2">
@@ -88,10 +88,10 @@ export function DesignCheck() {
           </button>
         </div>
         <p className="text-caption mb-4 text-text-muted">
-          Stepper 64 × 64 — el control mas importante de la app.
+          Stepper 64 × 64 — el control más importante de la app.
         </p>
 
-        <Button>Boton primario · 56 px</Button>
+        <Button>Botón primario · 56 px</Button>
       </Card>
     </div>
   );

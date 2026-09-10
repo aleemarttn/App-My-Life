@@ -8,7 +8,7 @@ export function NotFound() {
   return (
     <EmptyState
       titulo="Esta pantalla no existe"
-      descripcion="Puede que el enlace sea antiguo o que la seccion todavia no este construida."
+      descripcion="Puede que el enlace sea antiguo o que la sección todavía no esté construida."
       accion={<Button onClick={() => void navegar("/")}>Volver a Inicio</Button>}
     />
   );

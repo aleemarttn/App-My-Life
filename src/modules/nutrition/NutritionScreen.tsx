@@ -11,7 +11,7 @@ export function NutritionScreen() {
   return (
     <EmptyState
       titulo="Aparcado hasta la fase 4"
-      descripcion="Nutricion espera a que este entregado el TFG de Nutrigasto. Son proyectos separados: se reutiliza codigo, no datos."
+      descripcion="Nutrición espera a que esté entregado el TFG de Nutrigasto. Son proyectos separados: se reutiliza código, no datos."
     />
   );
 }

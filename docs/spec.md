@@ -59,7 +59,7 @@ El módulo de coche es el más barato de construir (cuatro tablas, un cron, UI m
 | Persistencia local | **Dexie (IndexedDB)** | Obligatorio (§2.3). `localStorage` no sirve: síncrono, ~5 MB, sin índices. |
 | Excel | **SheetJS (xlsx)** | Import y export en el navegador. El archivo nunca sale del dispositivo. |
 | Backend | **Supabase** — Postgres, Auth, RLS, Storage, Edge Functions, `pg_cron` | Ya lo usas y cubre los cinco requisitos sin añadir proveedores. |
-| Hosting | **Netlify** | Mantener el que ya usas. |
+| Hosting | **Vercel** | Elegido en D20. La app es estática más un service worker: cualquier CDN sirve, así que manda la preferencia. |
 | Notificaciones | **Telegram Bot API** (principal) + Web Push (secundaria) | §2.4 |
 
 ### 2.2 Estructura del repositorio

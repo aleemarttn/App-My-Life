@@ -42,9 +42,14 @@ export function IconoInicio(props: Props) {
 }
 
 export function IconoEntreno(props: Props) {
+  // Mancuerna: discos como rectangulos macizos en vez de lineas sueltas.
+  // A 24 px cuatro trazos verticales se leian como un simbolo raro.
   return (
     <Base {...props}>
-      <path d="M4 9.5v5M7 6.5v11M17 6.5v11M20 9.5v5M7 12h10" />
+      <rect x="2.2" y="8.4" width="3.6" height="7.2" rx="1.2" />
+      <rect x="18.2" y="8.4" width="3.6" height="7.2" rx="1.2" />
+      <path d="M5.8 12h12.4" />
+      <path d="M8.6 9.6v4.8M15.4 9.6v4.8" />
     </Base>
   );
 }
@@ -68,11 +73,15 @@ export function IconoDinero(props: Props) {
 }
 
 export function IconoCoche(props: Props) {
+  // El techo tiene que verse como techo y las ruedas como ruedas. La version
+  // anterior era una caja redondeada con dos rayitas debajo y parecia una
+  // impresora: el cuerpo era demasiado alto y las ruedas no eran circulos.
   return (
     <Base {...props}>
-      <path d="m5 11.5 1.6-4.3a2 2 0 0 1 1.9-1.3h7a2 2 0 0 1 1.9 1.3L19 11.5" />
-      <path d="M4.4 11.5h15.2a1.4 1.4 0 0 1 1.4 1.4v2.7a.9.9 0 0 1-.9.9H3.9a.9.9 0 0 1-.9-.9v-2.7a1.4 1.4 0 0 1 1.4-1.4Z" />
-      <path d="M7 16.5v1.4M17 16.5v1.4" />
+      <path d="m4.8 11.4 1.7-4a2 2 0 0 1 1.84-1.2h7.32a2 2 0 0 1 1.84 1.2l1.7 4" />
+      <path d="M3.4 11.4h17.2v3.3a.8.8 0 0 1-.8.8H4.2a.8.8 0 0 1-.8-.8Z" />
+      <circle cx="7.4" cy="16.9" r="1.55" />
+      <circle cx="16.6" cy="16.9" r="1.55" />
     </Base>
   );
 }

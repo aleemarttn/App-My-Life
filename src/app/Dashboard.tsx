@@ -21,8 +21,8 @@ const TARJETAS = [
   {
     to: "/coche",
     titulo: "Coche",
-    vacio: "Sin vehiculo",
-    detalle: "Proximo mantenimiento y kilometros pendientes.",
+    vacio: "Sin vehículo",
+    detalle: "Próximo mantenimiento y kilómetros pendientes.",
     fase: "fase 2",
   },
   {
@@ -36,14 +36,14 @@ const TARJETAS = [
     to: "/perfil",
     titulo: "Peso",
     vacio: "Sin registros",
-    detalle: "Media movil de 7 dias y tendencia a 30 (D14).",
+    detalle: "Media móvil de 7 días y tendencia a 30 (D14).",
     fase: "fase 1.5",
   },
   {
     to: "/comida",
     titulo: "Macros de hoy",
     vacio: "Sin objetivo",
-    detalle: "Llega despues de la entrega del TFG (D3).",
+    detalle: "Llega después de la entrega del TFG (D3).",
     fase: "fase 4",
   },
 ] as const;

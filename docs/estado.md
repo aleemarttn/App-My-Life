@@ -30,10 +30,10 @@
 
 ### En curso
 - [ ] **Punto 6 — a medias.** `src/core/supabase/types.ts` ya está generado y el cliente va tipado, pero se generó desde el MCP de Supabase, no con la CLI. Hay que rehacerlo con la CLI en cuanto esté instalada, y **regenerarlo después de cada migración**.
-- [ ] **Punto 10 — a medias.** `netlify.toml` está escrito y listo (reescritura de SPA, cacheado y cabeceras de seguridad con CSP). Falta conectar el repositorio en Netlify y **poner `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` como variables de entorno del sitio**, porque el `.env` no se versiona. Eso necesita tu cuenta.
+- [ ] **Punto 10 — a medias.** `vercel.json` está escrito y listo: reescritura de SPA, cacheado por tipo de recurso y cabeceras de seguridad con CSP. Falta importar el repositorio en Vercel y **poner `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` como variables de entorno del proyecto**, porque el `.env` no se versiona y sin ellas el build genera una app que no arranca. Eso necesita tu cuenta.
 
 ### Pendiente (en este orden)
-11. [ ] **Prueba de aceptación de la fase 0.** La parte de sincronización offline ya está verificada. Falta la otra mitad: **instalarla en el iPhone** desde la URL de Netlify y comprobar que abre, autentica y registra sin cobertura.
+11. [ ] **Prueba de aceptación de la fase 0.** La parte de sincronización offline ya está verificada. Falta la otra mitad: **instalarla en el iPhone** desde la URL de Vercel y comprobar que abre, autentica y registra sin cobertura.
 12. [ ] Cerrada la fase 0, empieza la **fase 1 — entrenamiento**. Primero se prototipa la pantalla 3 del wireframe (modo entreno) y se prueba en el gimnasio, antes de construir nada más: `design.md` §7 y el registro de riesgos son tajantes con eso.
 
 ---
@@ -69,4 +69,4 @@
 | 10/09/2026 | Puntos 2–4: andamiaje Vite + React + TS estricto + Tailwind 4 con tokens + PWA (manifest, iconos, SW). D15 y D16. `npm run build` en verde | Parado tras el punto 4 a petición propia, para validar el color en el móvil antes de tocar Dexie |
 | 10/09/2026 | Punto 1 (migraciones aplicadas + `harden_functions`), punto 5 (cliente, `AuthProvider`, login) y tipos generados. Repo propio creado y subido | Bloqueado en crear la cuenta de `auth.users` desde el panel; después, punto 7 (Dexie y outbox) |
 | 10/09/2026 | Punto 7: `core/db` entero — UUID v7 propio, esquema de Dexie, `outbox` transaccional, subida con retroceso exponencial, bajada incremental, 24 tests. D17 y D18. `SyncBadge` y panel de pruebas | Falta validar contra el servidor real (punto 11). Luego, punto 8: shell, router y barra de 5 pestañas |
-| 10/09/2026 (noche) | Limpieza (spec duplicada, deriva del modelo de datos, semilla del catálogo). Puntos 8 y 9: shell, barra de 5 pestañas, router con división por rutas, dashboard y placeholders. Perfil con exportación a JSON. `netlify.toml`. D19. 31 tests | Todo compila y las rutas responden, pero **nadie lo ha visto pintado**. Abrir la app y mirarla; luego desplegar en Netlify |
+| 10/09/2026 (noche) | Limpieza (spec duplicada, deriva del modelo de datos, semilla del catálogo). Puntos 8 y 9: shell, barra de 5 pestañas, router con división por rutas, dashboard y placeholders. Perfil con exportación a JSON. Configuración de despliegue. D19. 31 tests | Todo compila y las rutas responden, pero **nadie lo ha visto pintado**. Abrir la app y mirarla; luego desplegar |

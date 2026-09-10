@@ -24,7 +24,7 @@ export function DatosCard() {
     URL.revokeObjectURL(url);
 
     const filas = Object.values(datos.tablas).reduce((suma, t) => suma + t.length, 0);
-    setAviso(`Exportadas ${filas} filas y ${datos.outbox.length} pendientes.`);
+    setAviso(`Exportadas ${filas} filas y ${datos.outbox.length} pendientes de subir.`);
   }
 
   async function vaciar() {
@@ -34,13 +34,13 @@ export function DatosCard() {
     }
     await vaciarBaseLocal();
     setConfirmandoVaciado(false);
-    setAviso("Base local vaciada. Se volvera a bajar del servidor.");
+    setAviso("Base local vaciada. Se volverá a bajar del servidor.");
   }
 
   return (
     <Card titulo="Datos">
       <p className="text-caption mb-4 text-text-muted">
-        La copia incluye lo pendiente de subir, que es lo unico que no esta a salvo
+        La copia incluye lo pendiente de subir, que es lo único que no está a salvo
         en el servidor.
       </p>
 
@@ -64,7 +64,7 @@ export function DatosCard() {
         )}
 
         <Button variant="secondary" className="w-full" onClick={() => void supabase.auth.signOut()}>
-          Cerrar sesion
+          Cerrar sesión
         </Button>
       </div>
 

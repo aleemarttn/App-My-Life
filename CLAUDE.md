@@ -49,7 +49,7 @@ Este archivo se mantiene **por debajo de 150 líneas** a propósito: se carga en
 * **Persistencia local:** Dexie (IndexedDB) — obligatorio, la app es offline-first
 * **Excel:** SheetJS, import y export en el navegador
 * **Backend:** Supabase — Postgres, Auth, RLS, Storage, Edge Functions, pg\_cron
-* **Hosting:** Netlify
+* **Hosting:** Vercel (D20)
 * **Notificaciones:** Telegram Bot API (principal) + Web Push (secundaria)
 
 ## Estructura
@@ -123,5 +123,5 @@ docs/           spec.md · estado.md · decisiones.md
 
 ## Estado actual
 
-**Fase 0 — Cimientos.** Puntos 1 a 9 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox verificada contra el servidor, shell con 5 pestañas y pantallas vacías. Falta desplegar en Netlify (10) e instalarla en el móvil (11). Ver `docs/estado.md`.
+**Fase 0 — Cimientos.** Puntos 1 a 9 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox verificada contra el servidor, shell con 5 pestañas y pantallas vacías. Falta desplegar en Vercel (10) e instalarla en el móvil (11). Ver `docs/estado.md`.
 

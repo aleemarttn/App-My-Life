@@ -11,8 +11,8 @@ import { EmptyState } from "@/core/ui/EmptyState";
 export function FinanceScreen() {
   return (
     <EmptyState
-      titulo="Sin gastos todavia"
-      descripcion="La fase 3 traera la captura por Telegram, los presupuestos por categoria y la migracion del historico del bot actual."
+      titulo="Sin gastos todavía"
+      descripcion="La fase 3 traerá la captura por Telegram, los presupuestos por categoría y la migración del histórico del bot actual."
     />
   );
 }

@@ -18,10 +18,10 @@ export function TrainingScreen() {
     return (
       <div className="space-y-3">
         <EmptyState
-          titulo="Todavia no hay rutina"
-          descripcion="Cuando llegue la fase 1 podras importar el Excel del entrenador y empezar a registrar series."
+          titulo="Todavía no hay rutina"
+          descripcion="Cuando llegue la fase 1 podrás importar el Excel del entrenador y empezar a registrar series."
         />
-        <Card titulo="Catalogo de ejercicios">
+        <Card titulo="Catálogo de ejercicios">
           <p className="text-display tabular-nums text-accent">{catalogo}</p>
           <p className="text-caption mt-1 text-text-muted">
             ejercicios disponibles, sincronizados desde el servidor
