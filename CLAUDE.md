@@ -123,5 +123,7 @@ docs/           spec.md · estado.md · decisiones.md
 
 ## Estado actual
 
-**Fase 0 — Cimientos.** Puntos 1 a 9 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox verificada contra el servidor, shell con 5 pestañas y pantallas vacías. Desplegada en https://app-my-life.vercel.app. Falta solo instalarla en el móvil (11). Ver `docs/estado.md`.
+**Fase 0 — Cimientos: COMPLETADA** el 10/09/2026. Desplegada en https://app-my-life.vercel.app, instalada en el iPhone y con la sincronización offline verificada de extremo a extremo.
+
+**Fase 1 — Entrenamiento.** Lo primero es prototipar el modo entreno (`spec.md` §4.7) y probarlo en el gimnasio **antes de construir nada más**: es la pantalla que decide el proyecto. Ver `docs/estado.md`.
 

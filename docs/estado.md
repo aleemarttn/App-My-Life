@@ -4,8 +4,8 @@
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
 **Última actualización:** 10/09/2026
-**Fase actual:** 0 — Cimientos
-**Siguiente hito:** que la app instale en el móvil, autentique y sincronice un dato estando offline
+**Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** Siguiente: fase 1 — entrenamiento
+**Siguiente hito:** prototipar el modo entreno y probarlo en el gimnasio, antes de construir nada más del módulo
 
 ---
 
@@ -33,9 +33,14 @@
 - [ ] **Punto 6 — a medias.** `src/core/supabase/types.ts` ya está generado y el cliente va tipado, pero se generó desde el MCP de Supabase, no con la CLI. Hay que rehacerlo con la CLI en cuanto esté instalada, y **regenerarlo después de cada migración**.
 - [ ] Recomendable: **borrar los despliegues antiguos de Vercel**. Ya no contienen nada aprovechable —la clave que llevaban está muerta—, pero cada uno conserva una URL propia y permanente y no aportan nada.
 
-### Pendiente (en este orden)
-11. [ ] **Prueba de aceptación de la fase 0.** La parte de sincronización offline ya está verificada. Falta la otra mitad: **instalarla en el iPhone** desde la URL de Vercel y comprobar que abre, autentica y registra sin cobertura.
-12. [ ] Cerrada la fase 0, empieza la **fase 1 — entrenamiento**. Primero se prototipa la pantalla 3 del wireframe (modo entreno) y se prueba en el gimnasio, antes de construir nada más: `design.md` §7 y el registro de riesgos son tajantes con eso.
+- [x] **Punto 11 — PRUEBA DE ACEPTACIÓN SUPERADA (10/09/2026).** Instalada en el iPhone desde la URL de producción. Registros creados en modo avión, app cerrada del todo, red recuperada, y todo llegó a Supabase solo. **29 filas subidas y cero desordenadas**, repartidas en solo 17 segundos distintos: varias creadas dentro del mismo segundo mantuvieron el orden correcto, que es el contador de secuencia del UUID v7 haciendo su trabajo en condiciones reales. Registros de prueba borrados del servidor después.
+
+### Pendiente (fase 1)
+1. [ ] **Prototipar el modo entreno** (`spec.md` §4.7, pantalla 3 del wireframe) y **probarlo en el gimnasio** antes de construir nada más del módulo. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es cómodo con una mano y sin mirar, se rehace.
+2. [ ] Después: importador de Excel (§4.6), historial, sustituciones, vídeo y exportador.
+3. [ ] `core/ui/MetricChart` y el patrón `DetailView` (§2.8) entran en esta fase, y los reutilizan todos los módulos siguientes.
+
+**Criterio de salida de la fase 1:** 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque.
 
 ---
 
@@ -51,9 +56,9 @@
   **Lección de método:** al comprobar si el bundle viejo seguía servido, un 200 me hizo pensar que sí. Era falso: con la reescritura de SPA **cualquier ruta inexistente devuelve 200 con el `index.html`**. Hay que mirar el `content-type` y el contenido, nunca solo el código de estado.
 
 - **Cuenta creada y login verificado** el 10/09/2026 (`alejandromartin333@gmail.com`). El trigger `on_auth_user_created` creó la fila de `profiles` sola, lo que confirma de paso que el `revoke execute` de la migración `harden_functions` no rompió el trigger: se ejecuta como propietario de la tabla, no como el cliente.
-- **SIN VERIFICACIÓN VISUAL.** Todo lo del shell y las pantallas compila, pasa el lint, pasa los 31 tests y las ocho rutas responden 200 sobre el build de producción, pero **nadie lo ha visto pintado**: la extensión de Chrome no estaba conectada. Lo primero al retomar es abrir la app y mirarla. Los sospechosos habituales serían los iconos de la barra (dibujados a mano, sin ver) y el hueco inferior del contenido.
+- **Fallo corregido el 10/09/2026: el contador de «Pendientes» no se movía.** En modo avión, crear un registro lo añadía a Dexie pero el contador seguía a cero. El dato **sí** se encolaba —escritura y cola van en la misma transacción—, pero había **dos fuentes de verdad para el mismo número**: la interfaz leía una copia guardada dentro del motor de sincronización que solo se refrescaba al terminar un ciclo. Con la app sin cobertura eso significaba un minuto entero aparentando que el registro se había perdido, que es justo lo contrario de lo que la `outbox` debe transmitir. Ahora los contadores se leen de la tabla `outbox` con `useLiveQuery`, única fuente y siempre al día, y `EstadoSync` se queda solo con lo que Dexie no puede saber.
+- **Quedan registros «Prueba …» en la base local del iPhone.** Se borraron del servidor, pero la bajada solo añade, no borra. Se limpian con Perfil → Datos → Vaciar base local.
 - **El panel de sincronización se mudó** a Perfil, y `DesignCheck` a Perfil → Sistema de diseño. Ambos siguen siendo provisionales y se borran al cerrar la fase 0.
-- **Quedan 7 filas «Prueba …» en la base local del navegador.** Se borraron del servidor, pero Dexie no las pierde solo. Se limpian con Perfil → Datos → Vaciar base local, que vuelve a bajar el catálogo del servidor.
 - **Sin borrado de la base local al cerrar sesión, y es deliberado**: ahí puede haber registros sin subir. Consecuencia conocida: si algún día entrara un usuario distinto en el mismo dispositivo, vería los datos locales del anterior. No es un problema real con un solo usuario (D4), pero está aquí escrito para que no sorprenda.
 - **Bundle resuelto, con matiz.** El código propio de la app son ahora **7 kB gzip**; cada módulo es su propio trozo y las librerías van separadas (react 68, supabase 55, dexie 31, router 30 kB gzip). El total sigue siendo ~190 kB la primera vez, pero el service worker lo precachea y una actualización de la app ya solo invalida esos 7 kB. Aviso de los 500 kB desaparecido.
 - **Límite conocido de la bajada:** se trae una página de 1000 filas por tabla y ciclo, y el cursor avanza con `updated_at` estricto (`gt`). Si más de 1000 filas compartieran milisegundo exacto, se saltarían algunas. Con estos volúmenes es imposible, pero está escrito por si algún día se importa un histórico grande de golpe.
@@ -81,3 +86,4 @@
 | 10/09/2026 | Punto 7: `core/db` entero — UUID v7 propio, esquema de Dexie, `outbox` transaccional, subida con retroceso exponencial, bajada incremental, 24 tests. D17 y D18. `SyncBadge` y panel de pruebas | Falta validar contra el servidor real (punto 11). Luego, punto 8: shell, router y barra de 5 pestañas |
 | 10/09/2026 (noche) | Limpieza (spec duplicada, deriva del modelo de datos, semilla del catálogo). Puntos 8 y 9: shell, barra de 5 pestañas, router con división por rutas, dashboard y placeholders. Perfil con exportación a JSON. Configuración de despliegue. D19. 31 tests | Todo compila y las rutas responden, pero **nadie lo ha visto pintado**. Abrir la app y mirarla; luego desplegar |
 | 10/09/2026 | Vercel en vez de Netlify (D20). Tildes en toda la interfaz e iconos de coche y mancuerna rehechos. **Incidente de la `service_role`** y barrera `revisarConfig` con 7 tests. Punto 10 cerrado: desplegada y verificada en producción. 38 tests | Falta el punto 11: instalarla en el iPhone. Y confirmar la rotación de la clave y el borrado de despliegues antiguos |
+| 10/09/2026 (tarde) | Incidente cerrado migrando a las claves nuevas y desactivando las legacy: la expuesta devuelve 401. `context.md`. Corregidas fechas mal puestas. Arreglado el contador de pendientes, que tenía dos fuentes de verdad. **Punto 11 superado: la app instala en el iPhone y sincroniza sin cobertura.** 41 tests | ✅ **Fase 0 completa.** Empieza la fase 1: prototipar el modo entreno y probarlo en el gimnasio |

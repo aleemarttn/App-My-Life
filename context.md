@@ -127,7 +127,7 @@ corriendo. No es un fallo de configuración; hay que pararlo antes.
 
 ## 5. En qué punto está (10/09/2026)
 
-**Fase 0 — Cimientos: puntos 1 a 10 hechos.** Falta solo el 11.
+**Fase 0 — Cimientos: COMPLETADA.** Los once puntos, cerrados el 10/09/2026.
 
 Funcionando y verificado contra la realidad, no sobre el papel:
 
@@ -144,10 +144,13 @@ Funcionando y verificado contra la realidad, no sobre el papel:
   CSP que limita `connect-src` al proyecto de Supabase.
 - **Bundle:** 7 kB gzip de código propio; librerías y módulos en trozos aparte.
 
-**Lo que falta para cerrar la fase 0:** instalarla en el iPhone desde la URL de
-producción y comprobar que abre, autentica y registra sin cobertura.
+- **Prueba de aceptación superada:** instalada en el iPhone, registros creados en
+  modo avión, app cerrada del todo, red recuperada y todo llegó solo a Supabase. 29
+  filas y **cero desordenadas**, repartidas en 17 segundos distintos: varias creadas
+  dentro del mismo segundo mantuvieron el orden. Es el contador de secuencia del UUID
+  v7 funcionando de verdad.
 
-**Después:** fase 1, entrenamiento. Y lo primero de esa fase no es construir, sino
+**Ahora:** fase 1, entrenamiento. Y lo primero de esa fase no es construir, sino
 **prototipar la pantalla del modo entreno y probarla en el gimnasio**. Es la pantalla
 que decide el proyecto: si registrar una serie no es cómodo con una mano y sin mirar,
 se rehace antes de seguir.
