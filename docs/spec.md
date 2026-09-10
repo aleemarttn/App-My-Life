@@ -206,13 +206,23 @@ Los volúmenes lo permiten de sobra: un año de entrenamientos son unos pocos mi
 
 ## 3. Modelo de datos — núcleo
 
+> **Dos columnas que aparecen en casi todas las tablas y no son decorativas.**
+> `updated_at`, mantenida por el trigger `set_updated_at()`, es la que resuelve
+> los conflictos: el *last-write-wins* de §2.3 no tiene con qué comparar sin ella.
+> `deleted_at` implementa el borrado lógico, porque un borrado real no se puede
+> propagar entre dispositivos sin lápidas y además impide deshacer. Solo la llevan
+> las entidades con vida propia; los hijos de una rutina o de una sesión
+> desaparecen en cascada con su padre.
+
 ```sql
 create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text,
   telegram_chat_id bigint unique,
   timezone text not null default 'Atlantic/Canary',
-  created_at timestamptz not null default now()
+  settings jsonb not null default '{}'::jsonb,  -- cronómetro on/off, unidades, tema
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
 
 -- Motor de recordatorios, compartido por todos los módulos.
@@ -225,9 +235,13 @@ create table reminder_rules (
   channels text[] not null default '{telegram}',
   active boolean not null default true,
   last_fired_at timestamptz,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz
 );
 
+-- Solo escribe el servidor (service_role): no tiene política de insert.
+-- Por eso tampoco lleva updated_at: una notificación no se modifica.
 create table notifications_log (
   id uuid primary key,
   user_id uuid not null,
@@ -235,6 +249,7 @@ create table notifications_log (
   channel text not null,
   payload jsonb not null,
   status text not null,                 -- 'sent' | 'failed'
+  error text,
   sent_at timestamptz not null default now()
 );
 ```
@@ -273,7 +288,9 @@ create table exercises (
   video_url text,                       -- enlace de YouTube (§4.5)
   is_unilateral boolean not null default false,
   notes text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz
 );
 ```
 
@@ -297,7 +314,9 @@ create table routines (
   source text,                          -- 'excel' | 'manual' | 'coach_api'
   starts_on date, ends_on date,
   imported_file_name text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz
 );
 
 -- El mesociclo progresa ENTRE semanas: la semana 3 no lleva los mismos kilos
@@ -311,6 +330,8 @@ create table routine_days (
   label text not null,                  -- 'Lunes - Pierna'
   weekday int,                          -- 1..7, opcional
   position int not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
   unique (routine_id, week_number, position)
 );
 
@@ -327,7 +348,10 @@ create table routine_exercises (
   target_duration_seconds int,
   target_distance_m int,
   rest_seconds int default 120,
-  notes text                            -- indicación del entrenador: 'tempo 3-1-1'
+  notes text,                           -- indicación del entrenador: 'tempo 3-1-1'
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (routine_day_id, position)
 );
 
 create table workout_sessions (
@@ -337,7 +361,10 @@ create table workout_sessions (
   started_at timestamptz not null,
   ended_at timestamptz,
   perceived_effort int,                 -- RPE global 1..10
-  notes text
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz
 );
 
 -- SNAPSHOT: al empezar la sesión se copian aquí los routine_exercises del día.
@@ -353,7 +380,10 @@ create table session_exercises (
   planned jsonb not null,               -- copia de los objetivos en el momento de empezar
   substituted_from_exercise_id uuid references exercises(id),
   substitution_reason text,             -- 'máquina ocupada', 'molestia', ...
-  skipped boolean not null default false
+  skipped boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (session_id, position)
 );
 
 create table set_logs (
@@ -367,11 +397,18 @@ create table set_logs (
   rir int,
   duration_seconds int,
   distance_m int,
-  tags text[],
+  tags text[] not null default '{}',
   note text,
-  logged_at timestamptz not null default now()
+  logged_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (session_exercise_id, set_index)
 );
 ```
+
+> Los bloques SQL de arriba son la referencia funcional. La forma exacta y
+> ejecutable, con sus índices, triggers y políticas RLS, vive en
+> `supabase/migrations/`, que es lo que manda si algún día discrepan.
 
 **Por qué el snapshot (`session_exercises`) es importante:** sin él, si en enero hiciste sentadilla con 80 kg pautados y en marzo el entrenador cambia la rutina a 90 kg, tu historial de enero mostraría 90 kg como objetivo. El historial dejaría de ser auditable. Con snapshot, cada sesión conserva lo que estaba pautado *ese día*, y la sustitución de un ejercicio es simplemente un campo más de esa copia.
 

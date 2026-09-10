@@ -123,5 +123,5 @@ docs/           spec.md · estado.md · decisiones.md
 
 ## Estado actual
 
-**Fase 0 — Cimientos.** Puntos 1 a 7 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox. Falta el shell (8-9), Netlify (10) y la prueba de aceptación (11). Ver `docs/estado.md`.
+**Fase 0 — Cimientos.** Puntos 1 a 9 hechos: Supabase con RLS, PWA, auth, `core/db` con outbox verificada contra el servidor, shell con 5 pestañas y pantallas vacías. Falta desplegar en Netlify (10) e instalarla en el móvil (11). Ver `docs/estado.md`.
 

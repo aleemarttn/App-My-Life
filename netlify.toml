@@ -1,0 +1,60 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# ---------------------------------------------------------------
+# Reescritura de SPA.
+# Sin esto, recargar en /entreno o abrir un enlace directo devuelve 404:
+# ese archivo no existe en disco, la ruta la resuelve el router en el
+# cliente. El navigateFallback de Workbox solo cubre el caso con el
+# service worker YA instalado; la primera visita depende de esto.
+# ---------------------------------------------------------------
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ---------------------------------------------------------------
+# Cacheado.
+# Los assets llevan hash en el nombre, asi que son inmutables para
+# siempre. El service worker y el manifest NO pueden cachearse: son el
+# mecanismo por el que la app se entera de que hay una version nueva.
+# ---------------------------------------------------------------
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ---------------------------------------------------------------
+# Cabeceras de seguridad.
+# La clave anon viaja en el bundle por diseño y la proteccion real son
+# las politicas RLS, pero eso no es motivo para dejar la puerta abierta
+# a inyeccion o a clickjacking.
+#
+# connect-src esta limitado al proyecto de Supabase: si algun dia se
+# cuela un script, no puede mandar los datos a otro sitio. wss:// hace
+# falta para realtime; frame-src, para el reproductor de YouTube de
+# spec.md §4.5. style-src permite 'unsafe-inline' porque se usan
+# atributos style para pintar los tokens de color.
+# ---------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://wcmtrjjalwbchrmlsvow.supabase.co wss://wcmtrjjalwbchrmlsvow.supabase.co; img-src 'self' data: blob: https://i.ytimg.com; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src 'self'; font-src 'self'; frame-src https://www.youtube-nocookie.com; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'"

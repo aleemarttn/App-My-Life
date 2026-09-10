@@ -62,6 +62,26 @@ export default defineConfig({
     },
   },
 
+  build: {
+    rolldownOptions: {
+      output: {
+        // Cada libreria en su propio trozo. No reduce el total descargado la
+        // primera vez, pero al desplegar una version nueva solo se invalida
+        // el codigo de la app: React, Supabase y Dexie siguen en cache. En
+        // una PWA que se actualiza a menudo eso es la diferencia entre bajar
+        // 5 kB o 190 kB en cada despliegue.
+        codeSplitting: {
+          groups: [
+            { name: "supabase", test: /node_modules[\\/]@supabase[\\/]/ },
+            { name: "react", test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/ },
+            { name: "router", test: /node_modules[\\/]react-router[\\/]/ },
+            { name: "dexie", test: /node_modules[\\/]dexie[\\/]/ },
+          ],
+        },
+      },
+    },
+  },
+
   // host: true expone el dev server en la red local para poder abrir
   // la app desde el iPhone y comprobar zonas tactiles y area segura.
   server: { host: true },
