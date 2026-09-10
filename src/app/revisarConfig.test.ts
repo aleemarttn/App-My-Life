@@ -64,4 +64,17 @@ describe("revisarConfig", () => {
     const problemas = revisarConfig(URL_OK, jwtFalso("authenticated"));
     expect(problemas[0]?.grave).toBe(true);
   });
+
+  // ---- Formato nuevo de claves de Supabase. No son JWT, asi que la
+  // comprobacion de rol no las ve: se distinguen por el prefijo.
+  it("acepta la clave publishable, que es la sucesora de anon", () => {
+    expect(revisarConfig(URL_OK, "sb_publishable_jp1kKH_CtxWjRx5V5qvjkw")).toEqual([]);
+  });
+
+  it("RECHAZA la clave secreta del formato nuevo", () => {
+    const problemas = revisarConfig(URL_OK, "sb_secret_AbCdEf123456");
+    expect(problemas).toHaveLength(1);
+    expect(problemas[0]?.grave).toBe(true);
+    expect(problemas[0]?.problema).toMatch(/sb_secret_/);
+  });
 });

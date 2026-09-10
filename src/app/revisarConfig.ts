@@ -65,6 +65,18 @@ export function revisarConfig(
   // ---- Clave ----
   if (!clave) {
     problemas.push({ variable: "VITE_SUPABASE_ANON_KEY", problema: "No está definida." });
+  } else if (clave.startsWith("sb_secret_")) {
+    // Formato nuevo de Supabase. Estas NO son JWT, asi que la comprobacion
+    // de rol de mas abajo no las veria: hay que atajarlas por el prefijo.
+    problemas.push({
+      variable: "VITE_SUPABASE_ANON_KEY",
+      problema:
+        "Es una clave secreta (sb_secret_), equivalente a service_role. " +
+        "Nunca puede ir en el cliente: revócala y pon aquí la publishable (sb_publishable_).",
+      grave: true,
+    });
+  } else if (clave.startsWith("sb_publishable_")) {
+    // Correcta: es la sucesora de la clave anon y es publica por diseño.
   } else {
     const rol = rolDeClave(clave);
     if (rol === "service_role") {
