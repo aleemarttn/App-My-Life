@@ -1,0 +1,88 @@
+/* =============================================================
+   Tokens de diseno — fuente unica de verdad.
+   Derivados de docs/design.md §2 (color), §3 (tipografia),
+   §4 (espaciado y radios) y §5 (zonas tactiles).
+
+   Los valores de color son la PROPUESTA de design.md §2, aun sin
+   contrastar contra el lienzo de Claude Design. Si hay que ajustar
+   alguno, se ajusta AQUI y en ningun otro sitio.
+
+   Tailwind v4: cada variable de @theme genera su utilidad
+   (--color-surface -> bg-surface / text-surface / border-surface)
+   y sigue disponible como var(--color-surface) en CSS plano.
+   ============================================================= */
+
+@theme {
+  /* ---- Superficies ---- */
+  --color-bg: #0b0c0e; /* fondo de la app */
+  --color-surface: #16181c; /* tarjetas */
+  --color-surface-2: #202329; /* elementos elevados, inputs, chips */
+  --color-border: #2a2e36; /* separadores y bordes de 1px */
+
+  /* ---- Texto ---- */
+  --color-text: #f2f4f7; /* primario   — 16:1 sobre --bg */
+  --color-text-muted: #9ba3af; /* secundario —  6:1 sobre --surface */
+  --color-text-faint: #626b78; /* terciario  — SOLO marcas de eje */
+
+  /* ---- Acento (uno solo en toda la app) ---- */
+  --color-accent: #4ade80; /* accion primaria, serie principal */
+  --color-accent-press: #22c55e; /* estado pulsado */
+  --color-on-accent: #08130c; /* texto sobre acento */
+
+  /* ---- Semanticos ---- */
+  --color-danger: #f87171; /* alertas de coche, molestias, desvios */
+  --color-warning: #fbbf24; /* umbrales proximos */
+  --color-info: #60a5fa; /* serie secundaria en graficos */
+
+  /* ---- Tipografia (§3) ----
+     Sin webfonts: ahorran 100-200 kB y en movil no se distinguen. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  /* El numero protagonista: cuenta atras, peso actual */
+  --text-display: 3rem; /* 48 */
+  --text-display--line-height: 3.25rem; /* 52 */
+  --text-display--font-weight: 700;
+
+  /* Objetivo en modo entreno: "15 kg x 15 reps" */
+  --text-title-lg: 1.75rem; /* 28 */
+  --text-title-lg--line-height: 2.125rem; /* 34 */
+  --text-title-lg--font-weight: 600;
+
+  /* Nombre de ejercicio, cabeceras de pantalla */
+  --text-title: 1.25rem; /* 20 */
+  --text-title--line-height: 1.625rem; /* 26 */
+  --text-title--font-weight: 600;
+
+  /* Texto general. MINIMO ABSOLUTO para contenido. */
+  --text-body: 1rem; /* 16 */
+  --text-body--line-height: 1.5rem; /* 24 */
+  --text-body--font-weight: 400;
+
+  /* Etiquetas de campo, "Serie 1 de 2" */
+  --text-label: 0.875rem; /* 14 */
+  --text-label--line-height: 1.25rem; /* 20 */
+  --text-label--font-weight: 500;
+
+  /* Marcas de eje, fechas, metadatos */
+  --text-caption: 0.75rem; /* 12 */
+  --text-caption--line-height: 1rem; /* 16 */
+  --text-caption--font-weight: 400;
+
+  /* ---- Radios (§4) ---- */
+  --radius-card: 12px;
+  --radius-sheet: 16px; /* hojas inferiores */
+  --radius-button: 10px;
+  --radius-chip: 999px;
+
+  /* ---- Zonas tactiles (§5, critico) ----
+     Se exponen como escala de espaciado para poder escribir
+     h-touch / min-w-touch en lugar de numeros magicos. */
+  --spacing-touch: 48px; /* minimo de cualquier pulsable */
+  --spacing-touch-primary: 56px; /* alto del boton primario */
+  --spacing-touch-stepper: 64px; /* steppers del modo entreno */
+  --spacing-tabbar: 56px; /* barra inferior, sin area segura */
+
+  /* La rejilla base de 4 px de §4 ya es el valor por defecto de
+     Tailwind (--spacing: 0.25rem), no hace falta redefinirla. */
+}

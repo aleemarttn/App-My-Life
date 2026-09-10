@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* =============================================================
+   Capa base. Solo lo que aplica a toda la app; cualquier estilo
+   de componente vive en su componente de core/ui.
+   ============================================================= */
+
+@layer base {
+  :root {
+    color-scheme: dark; /* tema oscuro por defecto — design.md §1.3 */
+  }
+
+  html {
+    /* Evita que iOS aumente el tamano del texto en horizontal. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+
+    /* La app es una pantalla, no un documento: sin rebote elastico
+       ni tirar-para-recargar, que en modo entreno se dispara solo. */
+    overscroll-behavior-y: none;
+  }
+
+  /* Sin destello gris al tocar en iOS: los estados de pulsado los
+     define cada componente con --color-accent-press. */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Nota: para los numeros que se leen de un vistazo (design.md §3)
+     se usa la utilidad `tabular-nums` que Tailwind ya trae. */
+
+  /* Respeta "reducir movimiento" del sistema. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Areas seguras del dispositivo. Sin esto, en iPhone la barra
+     inferior queda debajo del indicador de inicio — design.md §5. */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .h-tabbar-safe {
+    height: calc(var(--spacing-tabbar) + env(safe-area-inset-bottom));
+  }
+}

@@ -1,0 +1,25 @@
+node_modules/
+dist/
+dist-ssr/
+dev-dist/
+*.local
+.env
+.env.*
+!.env.example
+
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Supabase
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# Datos personales: nunca se versionan
+*.xlsx
+*.xls
+!docs/plantillas/*.xlsx
+/exports/
+/fotos/
