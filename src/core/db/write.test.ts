@@ -48,6 +48,19 @@ describe("crear", () => {
     expect(await db.outbox.count()).toBe(0);
   });
 
+  it("el contador de pendientes refleja la escritura al instante", async () => {
+    // La cola se lee en vivo desde Dexie, no de una copia guardada en el
+    // motor de sincronizacion. Cuando venia de esa copia, crear un registro
+    // en modo avion lo encolaba bien pero el contador seguia a cero hasta el
+    // siguiente ciclo, y parecia que el dato se habia perdido.
+    const { contarPendientes } = await import("./push");
+    expect(await contarPendientes()).toBe(0);
+
+    await crear("exercises", { name: "Sin cobertura" });
+
+    expect(await contarPendientes()).toBe(1);
+  });
+
   it("genera id ordenable: la cola respeta el orden de creacion", async () => {
     const primero = await crear("exercises", { name: "A" });
     const segundo = await crear("exercises", { name: "B" });

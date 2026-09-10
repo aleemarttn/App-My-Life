@@ -1,13 +1,22 @@
 import { bajar } from "./pull";
-import { contarFalladas, contarPendientes, empujar } from "./push";
+import { empujar } from "./push";
 
 /**
  * Motor de sincronizacion: decide CUANDO se sincroniza. El QUE vive en
  * push.ts y pull.ts.
  *
  * Nada de esto bloquea nunca la interfaz. La app lee de Dexie y pinta;
- * esto ocurre por detras y, si falla, lo unico que cambia es el contador
- * de pendientes (design.md §8: no bloquear la interfaz por falta de red).
+ * esto ocurre por detras (design.md §8: no bloquear la interfaz por falta
+ * de red).
+ *
+ * OJO con lo que este estado NO incluye: los contadores de pendientes y
+ * fallidos. Estuvieron aqui y era un error, porque solo se refrescaban al
+ * terminar un ciclo: crear un registro sin cobertura encolaba bien pero el
+ * contador seguia a cero hasta el siguiente sondeo, y parecia que el dato
+ * se habia perdido. Esos numeros viven en la tabla `outbox` de Dexie y se
+ * leen de ahi con useLiveQuery, que es la unica fuente y siempre esta al
+ * dia. Aqui solo queda lo que Dexie no puede saber: si hay un ciclo en
+ * marcha y si el ultimo fallo.
  */
 
 /** Sondeo de fondo. Corto no aporta: los disparadores reales son eventos. */
@@ -15,8 +24,6 @@ const INTERVALO_MS = 60_000;
 
 export interface EstadoSync {
   sincronizando: boolean;
-  pendientes: number;
-  falladas: number;
   ultimoIntento: string | null;
   ultimoError: string | null;
 }
@@ -25,8 +32,6 @@ type Oyente = (estado: EstadoSync) => void;
 
 let estado: EstadoSync = {
   sincronizando: false,
-  pendientes: 0,
-  falladas: 0,
   ultimoIntento: null,
   ultimoError: null,
 };
@@ -59,13 +64,6 @@ export function escucharSync(oyente: Oyente): () => void {
   };
 }
 
-async function refrescarContadores(): Promise<void> {
-  emitir({
-    pendientes: await contarPendientes(),
-    falladas: await contarFalladas(),
-  });
-}
-
 /**
  * Un ciclo completo: primero subir, despues bajar.
  *
@@ -75,10 +73,9 @@ async function refrescarContadores(): Promise<void> {
  */
 export async function sincronizarAhora(): Promise<void> {
   if (estado.sincronizando) return;
-  if (typeof navigator !== "undefined" && !navigator.onLine) {
-    await refrescarContadores();
-    return;
-  }
+  // Sin red no se intenta siquiera. Los contadores no hay que tocarlos:
+  // los pinta Dexie por su cuenta.
+  if (typeof navigator !== "undefined" && !navigator.onLine) return;
 
   emitir({ sincronizando: true, ultimoIntento: new Date().toISOString() });
 
@@ -92,7 +89,6 @@ export async function sincronizarAhora(): Promise<void> {
     emitir({ ultimoError: fallo instanceof Error ? fallo.message : String(fallo) });
   } finally {
     emitir({ sincronizando: false });
-    await refrescarContadores();
   }
 }
 

@@ -1,4 +1,5 @@
 import { sincronizarAhora } from "@/core/db";
+import { useOutbox } from "./useOutbox";
 import { useSyncEstado } from "./useSyncEstado";
 
 /**
@@ -7,9 +8,13 @@ import { useSyncEstado } from "./useSyncEstado";
  * Discreto es la palabra clave: estar sin cobertura es normal, no es un
  * error. La app funciona igual y esto solo informa. Cuando no hay nada
  * pendiente no se pinta nada, para no añadir ruido permanente.
+ *
+ * Los contadores salen de Dexie en vivo, no del motor: tienen que aparecer
+ * en el momento en que se registra algo, no en el siguiente ciclo.
  */
 export function SyncBadge() {
-  const { pendientes, falladas, sincronizando } = useSyncEstado();
+  const { pendientes, falladas } = useOutbox();
+  const { sincronizando } = useSyncEstado();
 
   if (pendientes === 0 && falladas === 0) return null;
 

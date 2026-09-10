@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { crear, db, sincronizarAhora, uuidv7 } from "@/core/db";
 import { Button } from "@/core/ui/Button";
+import { useOutbox } from "@/core/ui/useOutbox";
 import { useSyncEstado } from "@/core/ui/useSyncEstado";
 
 /**
@@ -14,6 +15,7 @@ import { useSyncEstado } from "@/core/ui/useSyncEstado";
  */
 export function SyncPanel() {
   const estado = useSyncEstado();
+  const { pendientes, falladas } = useOutbox();
   const [ultimo, setUltimo] = useState<string | null>(null);
 
   // useLiveQuery vuelve a consultar solo cuando Dexie cambia. Es el patron
@@ -39,17 +41,17 @@ export function SyncPanel() {
         <dd className="tabular-nums text-right">{locales}</dd>
 
         <dt className="text-text-muted">Pendientes</dt>
-        <dd className="tabular-nums text-right text-warning">{estado.pendientes}</dd>
+        <dd className="tabular-nums text-right text-warning">{pendientes}</dd>
 
         <dt className="text-text-muted">Rechazados</dt>
-        <dd className="tabular-nums text-right text-danger">{estado.falladas}</dd>
+        <dd className="tabular-nums text-right text-danger">{falladas}</dd>
 
         <dt className="text-text-muted">Estado</dt>
         <dd className="text-right">
           {estado.sincronizando ? (
             <span className="text-info">sincronizando…</span>
-          ) : estado.ultimoError ? (
-            <span className="text-danger">sin conexión</span>
+          ) : pendientes > 0 ? (
+            <span className="text-warning">sin conexión</span>
           ) : (
             <span className="text-accent">al día</span>
           )}
