@@ -31,7 +31,8 @@
 
 ### En curso
 - [ ] **Punto 6 — a medias.** `src/core/supabase/types.ts` ya está generado y el cliente va tipado, pero se generó desde el MCP de Supabase, no con la CLI. Hay que rehacerlo con la CLI en cuanto esté instalada, y **regenerarlo después de cada migración**.
-- [ ] **Seguridad, pendiente de confirmar:** rotar la `service_role` en Supabase y **borrar los despliegues antiguos de Vercel**. Ver el incidente más abajo. El dominio de producción ya está limpio, pero cada despliegue antiguo conserva una URL propia y permanente.
+- [ ] **Seguridad, último paso:** desactivar las claves **legacy** en Supabase. La app ya usa `sb_publishable_…` en producción (verificado el 11/09/2026: la clave publishable está incrustada y **no queda ningún JWT legacy en el bundle**), así que desactivarlas invalida de golpe la `service_role` que estuvo expuesta sin romper nada. Es reversible: si algo fallara, se vuelven a habilitar. Conviene además **borrar los despliegues antiguos de Vercel**, que conservan una URL propia y permanente.
+  **Por qué la clave publishable y no rotar el secreto JWT:** en el sistema legacy, `anon` y `service_role` están firmadas con el mismo secreto, así que rotar una invalida las dos a la vez y deja la app caída hasta redesplegar. Las claves nuevas son independientes y revocables por separado, de modo que el cambio se hace con red.
 
 ### Pendiente (en este orden)
 11. [ ] **Prueba de aceptación de la fase 0.** La parte de sincronización offline ya está verificada. Falta la otra mitad: **instalarla en el iPhone** desde la URL de Vercel y comprobar que abre, autentica y registra sin cobertura.
