@@ -24,17 +24,19 @@ export function Stepper({ etiqueta, valor, onCambiar, incremento = 1, min = 0, m
 
   return (
     <div>
-      <p className="text-label mb-2 text-text-muted">{etiqueta}</p>
-      <div className="flex items-center justify-center gap-3">
+      <p className="text-label mb-2 text-center text-text-muted">{etiqueta}</p>
+      {/* Una sola pastilla, no tres cajas sueltas: el borde exterior es el
+          unico borde, y las lineas internas solo separan, no encierran. */}
+      <div className="mx-auto flex h-touch-stepper max-w-72 items-stretch overflow-hidden rounded-button border border-border">
         <button
           type="button"
           onClick={bajar}
           aria-label={`Restar ${etiqueta}`}
-          className="size-touch-stepper shrink-0 rounded-button bg-surface-2 text-title-lg text-text active:bg-border"
+          className="w-touch-stepper shrink-0 bg-surface-2 text-title-lg text-text active:bg-border"
         >
           −
         </button>
-        <div className="h-touch-stepper flex flex-1 items-center justify-center rounded-button border border-border bg-surface">
+        <div className="flex flex-1 items-center justify-center border-x border-border bg-surface">
           <span className="text-title-lg tabular-nums">
             {valor}
             {sufijo ? ` ${sufijo}` : ""}
@@ -44,7 +46,7 @@ export function Stepper({ etiqueta, valor, onCambiar, incremento = 1, min = 0, m
           type="button"
           onClick={subir}
           aria-label={`Sumar ${etiqueta}`}
-          className="size-touch-stepper shrink-0 rounded-button bg-surface-2 text-title-lg text-text active:bg-border"
+          className="w-touch-stepper shrink-0 bg-surface-2 text-title-lg text-text active:bg-border"
         >
           +
         </button>
