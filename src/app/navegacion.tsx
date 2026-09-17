@@ -1,4 +1,4 @@
-import {
+﻿import {
   IconoCoche,
   IconoComida,
   IconoDinero,
@@ -27,6 +27,7 @@ export const DESTINOS: DestinoTab[] = [
 const TITULOS: Record<string, string> = {
   "/": "My Life",
   "/entreno": "Entreno",
+  "/entreno/importar": "Importar rutina",
   "/comida": "Comida",
   "/dinero": "Dinero",
   "/coche": "Coche",

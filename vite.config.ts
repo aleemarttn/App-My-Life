@@ -1,4 +1,4 @@
-import { fileURLToPath, URL } from "node:url";
+﻿import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
@@ -50,6 +50,11 @@ export default defineConfig({
         // encarga Dexie (spec §2.3). Cachear respuestas de Supabase
         // en Workbox duplicaria la fuente de verdad.
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+
+        // SheetJS pesa 492 kB y solo hace falta al importar una rutina, que
+        // pasa una vez por mesociclo y con red. Precachearlo triplicaria el
+        // arranque de la app para algo que casi nunca se usa.
+        globIgnores: ["**/xlsx-*.js"],
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
       },

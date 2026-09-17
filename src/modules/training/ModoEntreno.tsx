@@ -12,15 +12,13 @@ interface Descanso {
   segundos: number;
 }
 
+/** Si la rutina no pauta descanso, dos minutos es lo habitual en fuerza. */
+const DESCANSO_POR_DEFECTO = 120;
+
 /**
  * Pantalla 3 del wireframe (spec §4.7): "la pantalla que decide el
  * proyecto". Fuera de `AppShell` a proposito: secuencial y bloqueante, sin
  * barra de pestañas que distraiga ni tiente a salir a mitad de serie.
- *
- * Con datos de PRUEBA (ver planEntrenoPrueba.ts) mientras no existe el
- * importador de Excel: el objetivo de esta iteracion es validar en el
- * gimnasio si el flujo de registro es comodo con una mano y sin mirar, no
- * la gestion de rutinas.
  */
 export function ModoEntreno() {
   const navigate = useNavigate();
@@ -33,13 +31,13 @@ export function ModoEntreno() {
     return <div className="min-h-dvh bg-bg" />;
   }
 
-  if (sesion.catalogoVacio) {
+  if (sesion.sinRutina) {
     return (
       <div className="min-h-dvh bg-bg px-4 pt-safe">
         <EmptyState
-          titulo="Falta el catálogo"
-          descripcion="El catálogo de ejercicios todavía no ha llegado del servidor. Conéctate a internet y vuelve a intentarlo."
-          accion={<Button onClick={() => navigate("/entreno")}>Volver</Button>}
+          titulo="No hay rutina activa"
+          descripcion="Importa el Excel de tu entrenador para tener algo que entrenar."
+          accion={<Button onClick={() => navigate("/entreno/importar")}>Importar rutina</Button>}
         />
       </div>
     );
@@ -62,7 +60,7 @@ export function ModoEntreno() {
   }
 
   const paso = sesion.paso;
-  if (!paso) return null; // inalcanzable: cubierto por "completada" arriba
+  if (!paso) return null; // inalcanzable: cubierto por los casos de arriba
 
   return (
     <SerieActiva
@@ -70,7 +68,10 @@ export function ModoEntreno() {
       paso={paso}
       onConfirmar={(entrada) => {
         void sesion.confirmarSerie(entrada);
-        setDescanso({ clave: `${paso.sessionExercise.id}-${paso.numeroSerie}`, segundos: paso.planned.rest_seconds });
+        setDescanso({
+          clave: `${paso.sessionExercise.id}-${paso.numeroSerie}`,
+          segundos: paso.planned.rest_seconds ?? DESCANSO_POR_DEFECTO,
+        });
       }}
       onSaltar={() => void sesion.saltarEjercicio()}
       onSustituir={(nuevoId, motivo) => void sesion.sustituirEjercicio(nuevoId, motivo)}

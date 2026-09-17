@@ -2,21 +2,29 @@ import { useEffect, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { actualizar, crear, db, usuarioActualId } from "@/core/db";
 import type { Json, Tables } from "@/core/supabase/types";
-import { construirPlanPrueba } from "./planEntrenoPrueba";
+import { calcularProximoEntreno } from "./proximoEntreno";
 
+/**
+ * Copia de los objetivos en el momento de empezar (spec §4.3). Todo es
+ * anulable porque la rutina real lo es: un cardio no tiene series ni peso,
+ * y un accesorio puede venir sin RIR pautado.
+ */
 export interface ObjetivoPlan {
-  target_sets: number;
-  target_reps_min: number;
-  target_reps_max: number;
-  target_weight: number;
-  target_rir: number;
-  rest_seconds: number;
+  target_sets: number | null;
+  target_reps_min: number | null;
+  target_reps_max: number | null;
+  target_weight: number | null;
+  target_rir: number | null;
+  target_duration_seconds: number | null;
+  target_distance_m: number | null;
+  rest_seconds: number | null;
 }
 
 export interface PasoActual {
   sessionExercise: Tables<"session_exercises">;
   planned: ObjetivoPlan;
   numeroSerie: number;
+  totalSeries: number;
 }
 
 interface DatosSesion {
@@ -25,21 +33,27 @@ interface DatosSesion {
   logsPorEjercicio: Record<string, Tables<"set_logs">[]>;
 }
 
+/** Un ejercicio sin series pautadas (cardio, plancha) es una sola entrada. */
+function seriesDe(planned: ObjetivoPlan): number {
+  return planned.target_sets && planned.target_sets > 0 ? planned.target_sets : 1;
+}
+
 function calcularPaso(datos: DatosSesion): PasoActual | null {
   for (const se of datos.ejercicios) {
     if (se.skipped) continue;
     const planned = se.planned as unknown as ObjetivoPlan;
+    const total = seriesDe(planned);
     const hechas = datos.logsPorEjercicio[se.id]?.length ?? 0;
-    if (hechas < planned.target_sets) {
-      return { sessionExercise: se, planned, numeroSerie: hechas + 1 };
+    if (hechas < total) {
+      return { sessionExercise: se, planned, numeroSerie: hechas + 1, totalSeries: total };
     }
   }
   return null;
 }
 
 export interface EntradaSerie {
-  reps: number;
-  peso: number;
+  reps: number | null;
+  peso: number | null;
   rir: number | null;
   tags: string[];
   nota: string;
@@ -48,10 +62,9 @@ export interface EntradaSerie {
 export interface EstadoSesionEntreno {
   /** Aun no se sabe si hay sesion activa: no pintar nada definitivo todavia. */
   cargando: boolean;
-  /** El catalogo de ejercicios todavia no ha llegado del servidor. */
-  catalogoVacio: boolean;
+  /** No hay rutina activa con dias: no hay nada que entrenar. */
+  sinRutina: boolean;
   paso: PasoActual | null;
-  /** Hay sesion, tiene ejercicios y ninguno queda por hacer. */
   completada: boolean;
   seriesRegistradas: number;
   confirmarSerie: (entrada: EntradaSerie) => Promise<void>;
@@ -60,12 +73,12 @@ export interface EstadoSesionEntreno {
 }
 
 /**
- * Orquesta la sesion del modo entreno: la crea si no existe, la retoma si
- * se abandono a medias (spec §4.7 — "la sesion se puede abandonar y
- * retomar: el estado vive en Dexie") y calcula cual es la proxima serie.
+ * Orquesta la sesion del modo entreno: la crea a partir del dia que toca de
+ * la rutina activa, la retoma si se abandono a medias (spec §4.7 — "el
+ * estado vive en Dexie") y calcula cual es la proxima serie.
  *
  * Una sola consulta reactiva junta sesion + ejercicios + series: Dexie
- * observa las tablas que se leen dentro, así que no hace falta encadenar
+ * observa las tablas que se leen dentro, asi que no hace falta encadenar
  * varios useLiveQuery ni llevar sus dependencias a mano.
  */
 export function useSesionEntreno(): EstadoSesionEntreno {
@@ -95,42 +108,55 @@ export function useSesionEntreno(): EstadoSesionEntreno {
     return { sesion, ejercicios, logsPorEjercicio };
   }, [userId]);
 
-  const catalogoListo = useLiveQuery(() => db.exercises.count(), [], 0) > 0;
-  const cargando = datos === undefined;
+  const proximo = useLiveQuery(
+    async () => (userId ? await calcularProximoEntreno(userId) : null),
+    [userId],
+  );
 
-  // Crea la sesion de prueba si no hay ninguna en curso. `creandoRef` evita
-  // dispararla dos veces en el doble efecto de React 18 en desarrollo.
+  const cargando = datos === undefined || proximo === undefined;
+
+  // Crea la sesion del dia si no hay ninguna en curso. `creandoRef` evita
+  // dispararla dos veces en el doble efecto de React en desarrollo.
   useEffect(() => {
-    if (cargando || !userId || datos.sesion || creandoRef.current || !catalogoListo) return;
+    if (cargando || !userId || datos.sesion || creandoRef.current || !proximo) return;
 
     creandoRef.current = true;
     void (async () => {
-      const plan = await construirPlanPrueba();
-      if (plan.length === 0) {
-        creandoRef.current = false;
-        return;
-      }
-
       const sessionId = await crear("workout_sessions", {
         started_at: new Date().toISOString(),
         ended_at: null,
-        routine_day_id: null,
+        routine_day_id: proximo.dia.id,
         perceived_effort: null,
-        notes: "Prototipo del modo entreno con datos de prueba (fase 1, docs/estado.md).",
+        notes: null,
       });
 
-      for (const [posicion, item] of plan.entries()) {
+      // SNAPSHOT: se copian los objetivos de hoy. Si la rutina cambia
+      // despues, el historial de esta sesion sigue siendo correcto
+      // (spec §4.3).
+      for (const [posicion, item] of proximo.ejercicios.entries()) {
+        const re = item.routineExercise;
+        const planned: ObjetivoPlan = {
+          target_sets: re.target_sets,
+          target_reps_min: re.target_reps_min,
+          target_reps_max: re.target_reps_max,
+          target_weight: re.target_weight,
+          target_rir: re.target_rir,
+          target_duration_seconds: re.target_duration_seconds,
+          target_distance_m: re.target_distance_m,
+          rest_seconds: re.rest_seconds,
+        };
+
         await crear("session_exercises", {
           session_id: sessionId,
-          routine_exercise_id: null,
-          exercise_id: item.exercise.id,
+          routine_exercise_id: re.id,
+          exercise_id: re.exercise_id,
           position: posicion,
-          planned: item.planned as unknown as Json,
+          planned: planned as unknown as Json,
           skipped: false,
         });
       }
     })();
-  }, [cargando, userId, datos, catalogoListo]);
+  }, [cargando, userId, datos, proximo]);
 
   const paso = cargando ? null : calcularPaso(datos);
   const completada = !cargando && datos.ejercicios.length > 0 && paso === null;
@@ -175,7 +201,7 @@ export function useSesionEntreno(): EstadoSesionEntreno {
 
   return {
     cargando,
-    catalogoVacio: !cargando && !datos.sesion && !catalogoListo,
+    sinRutina: !cargando && !datos.sesion && !proximo,
     paso,
     completada,
     seriesRegistradas,

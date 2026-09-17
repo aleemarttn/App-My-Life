@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+﻿import { createBrowserRouter } from "react-router";
 import { AppLayout } from "./AppLayout";
 import { Dashboard } from "./Dashboard";
 
@@ -30,6 +30,13 @@ export const router = createBrowserRouter([
         path: "entreno",
         lazy: async () => ({
           Component: (await import("@/modules/training/TrainingScreen")).TrainingScreen,
+        }),
+      },
+      {
+        // El bundle de SheetJS (~400 kB) solo se descarga al abrir esto.
+        path: "entreno/importar",
+        lazy: async () => ({
+          Component: (await import("@/modules/training/ImportarRutinaScreen")).ImportarRutinaScreen,
         }),
       },
       {

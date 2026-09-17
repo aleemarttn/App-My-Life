@@ -5,19 +5,43 @@ import { Button } from "@/core/ui/Button";
 import { Chip } from "@/core/ui/Chip";
 import { Stepper } from "@/core/ui/Stepper";
 import { SustituirSheet } from "./SustituirSheet";
-import type { EntradaSerie, PasoActual } from "./useSesionEntreno";
+import type { EntradaSerie, ObjetivoPlan, PasoActual } from "./useSesionEntreno";
 
 const RIR_OPCIONES = [0, 1, 2, 3, 4, 5];
 
 /**
  * Solo 3 de las 7 etiquetas de spec §4.4: son las que trae el wireframe de
- * la pantalla 3. El resto entra si la prueba en el gimnasio pide mas.
+ * la pantalla 3. El resto entra si la prueba en el gimnasio lo pide.
  */
 const TAGS: { valor: string; etiqueta: string }[] = [
   { valor: "facil", etiqueta: "fácil" },
   { valor: "al_fallo", etiqueta: "al fallo" },
   { valor: "molestia", etiqueta: "molestia" },
 ];
+
+/** El objetivo pautado, en una linea. Se adapta a lo que la rutina traiga. */
+function textoObjetivo(planned: ObjetivoPlan): string {
+  const partes: string[] = [];
+
+  if (planned.target_weight != null) partes.push(`${planned.target_weight} kg`);
+
+  const { target_reps_min: min, target_reps_max: max } = planned;
+  if (min != null || max != null) {
+    const reps = min != null && max != null && min !== max ? `${min}-${max}` : `${max ?? min}`;
+    partes.push(`${reps} reps`);
+  }
+
+  if (planned.target_duration_seconds != null) {
+    const s = planned.target_duration_seconds;
+    partes.push(s >= 60 ? `${Math.round(s / 60)} min` : `${s} s`);
+  }
+  if (planned.target_distance_m != null) {
+    const m = planned.target_distance_m;
+    partes.push(m >= 1000 ? `${m / 1000} km` : `${m} m`);
+  }
+
+  return partes.join(" × ") || "Sin objetivo pautado";
+}
 
 interface SerieActivaProps {
   paso: PasoActual;
@@ -30,7 +54,7 @@ interface SerieActivaProps {
  * Pantalla 3 del wireframe (spec §4.7): la serie activa, una a una. Sin
  * `key` en el uso de este componente el estado de los steppers y del RIR se
  * arrastraria de una serie a la siguiente, que es justo lo que evita el
- * padre remontandolo por sesion+numero de serie.
+ * padre remontandolo por ejercicio+numero de serie.
  */
 export function SerieActiva({ paso, onConfirmar, onSaltar, onSustituir }: SerieActivaProps) {
   const ejercicio = useLiveQuery(
@@ -38,8 +62,9 @@ export function SerieActiva({ paso, onConfirmar, onSaltar, onSustituir }: SerieA
     [paso.sessionExercise.exercise_id],
   );
 
-  const [reps, setReps] = useState(paso.planned.target_reps_max);
-  const [peso, setPeso] = useState(paso.planned.target_weight);
+  const { planned } = paso;
+  const [reps, setReps] = useState(planned.target_reps_max ?? planned.target_reps_min ?? 10);
+  const [peso, setPeso] = useState(planned.target_weight ?? 0);
   const [rir, setRir] = useState<number | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [notaAbierta, setNotaAbierta] = useState(false);
@@ -52,11 +77,11 @@ export function SerieActiva({ paso, onConfirmar, onSaltar, onSustituir }: SerieA
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg px-4 pt-safe">
-      <header className="flex items-center justify-between py-4">
-        <div>
+      <header className="flex items-center justify-between gap-3 py-4">
+        <div className="min-w-0">
           <h1 className="text-title truncate">{ejercicio?.name ?? "Cargando..."}</h1>
           <p className="text-label text-text-muted">
-            Serie {paso.numeroSerie} de {paso.planned.target_sets}
+            Serie {paso.numeroSerie} de {paso.totalSeries}
           </p>
         </div>
         {ejercicio?.video_url && (
@@ -73,15 +98,13 @@ export function SerieActiva({ paso, onConfirmar, onSaltar, onSustituir }: SerieA
       </header>
 
       <div className="flex flex-1 flex-col justify-center gap-6">
-        <p className="text-title-lg text-center tabular-nums">
-          {paso.planned.target_weight} kg × {paso.planned.target_reps_max} reps
-        </p>
+        <p className="text-title-lg text-center tabular-nums">{textoObjetivo(planned)}</p>
 
         <Stepper etiqueta="Repeticiones" valor={reps} onCambiar={setReps} sufijo="reps" />
         <Stepper etiqueta="Peso" valor={peso} onCambiar={setPeso} incremento={2.5} sufijo="kg" />
 
         <div>
-          <p className="text-label mb-2 text-text-muted">RIR</p>
+          <p className="text-label mb-2 text-center text-text-muted">RIR</p>
           <div className="flex justify-center gap-2">
             {RIR_OPCIONES.map((n) => (
               <button

@@ -1,11 +1,11 @@
-# Estado del proyecto
+﻿# Estado del proyecto
 
 > **Este archivo se lee al empezar cada sesión de trabajo y se actualiza al terminarla.**
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
-**Última actualización:** 16/09/2026
+**Última actualización:** 17/09/2026
 **Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** En curso: fase 1 — entrenamiento
-**Siguiente hito:** probar el modo entreno EN EL GIMNASIO (código ya listo) antes de construir nada más del módulo
+**Siguiente hito:** probar en el gimnasio el circuito completo — importar rutina, entrenarla y ver que sube
 
 ---
 
@@ -37,14 +37,43 @@
 
 ### Pendiente (fase 1)
 1. [ ] **Prototipar el modo entreno** (`spec.md` §4.7, pantalla 3 del wireframe) — **código listo, falta probarlo en el gimnasio.** Ver nota de la sesión 16/09/2026 más abajo. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es cómodo con una mano y sin mirar, se rehace.
-2. [ ] Después: importador de Excel (§4.6), historial, sustituciones, vídeo y exportador.
-3. [ ] `core/ui/MetricChart` y el patrón `DetailView` (§2.8) entran en esta fase, y los reutilizan todos los módulos siguientes.
+2. [x] **Importador de Excel (§4.6) — hecho el 17/09/2026.** Parseo y emparejamiento verificados contra `docs/plantillas/rutina-ejemplo.xlsx`; falta ejecutarlo contra la base real con sesión iniciada.
+3. [ ] Queda: historial por ejercicio, vídeo en hoja inferior y exportador a Excel.
+4. [ ] `core/ui/MetricChart` y el patrón `DetailView` (§2.8) entran en esta fase, y los reutilizan todos los módulos siguientes.
 
 **Criterio de salida de la fase 1:** 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque.
 
 ---
 
 ## Notas para la siguiente sesión
+
+- **17/09/2026 — Importador de Excel hecho, y el módulo ya funciona con rutina real.** Los datos de prueba
+  (`planEntrenoPrueba.ts`) están **borrados**: la app ya no inventa nada.
+  - **Importador** (`spec.md` §4.6, D21 y D22): `core/xlsx.ts` envuelve SheetJS con `import()` dinámico;
+    `importarFormato.ts` valida el formato canónico —incluida la coma decimal y los avisos por columna
+    ausente—; `importarEmparejar.ts` empareja contra el catálogo con Dice sobre palabras;
+    `importarRutina.ts` escribe rutina, días y ejercicios por `core/db`; `ImportarRutinaScreen.tsx` es la
+    pantalla de los 5 pasos. Ruta `/entreno/importar`.
+  - **Rutina real de punta a punta:** `proximoEntreno.ts` calcula el día que toca (D23) y de ahí salen
+    tanto la portada de Entreno como el snapshot de `session_exercises` del modo entreno. `ObjetivoPlan`
+    pasa a ser anulable, porque la rutina real lo es (un cardio no tiene series ni peso).
+  - **Excel de ejemplo** en `docs/plantillas/rutina-ejemplo.xlsx`: 4 semanas, 16 días, 64 filas, con progresión y
+    descarga. Los nombres van escritos como los escribiría un entrenador —abreviados y sin tildes— y dos
+    de ellos no existen en el catálogo, para que el emparejamiento se pruebe de verdad. Sirve también
+    como plantilla para pasarle al entrenador.
+  - **65 tests** (41 + 24 nuevos). El importante es `importarEjemplo.test.ts`: recorre el circuito
+    completo contra el .xlsx real —SheetJS, validación y emparejamiento— y comprueba que la progresión
+    sobrevive al parser. Los otros prueban la lógica con filas inventadas; ese demuestra que un archivo
+    de verdad entra entero.
+  - **Ojo con el precaché:** al entrar SheetJS, el arranque de la PWA pasó de 680 KiB a 1,18 MiB. Se
+    excluyó con `globIgnores` en `vite.config.ts` y volvió a 696 KiB. Si algún día se añade otra librería
+    pesada de uso esporádico, mirar esto antes de darlo por bueno.
+  - **Windows, choque de mayúsculas:** `ImportarRutina.tsx` e `importarRutina.ts` solo se diferenciaban en
+    el caso y TypeScript se negó a compilar. Por eso la pantalla se llama `ImportarRutinaScreen.tsx`.
+  - **Pendiente de probar con el dedo:** el importador no se ha ejecutado todavía contra la base real
+    —hace falta sesión iniciada—. Lo verificado es el parseo y el emparejamiento, no la inserción.
+    Primera prueba: importar `docs/plantillas/rutina-ejemplo.xlsx` y comprobar que aparecen 1 rutina, 16 días y 64
+    `routine_exercises`, y que la outbox los sube en orden.
 
 - **16/09/2026 — Modo entreno prototipado, pendiente de probar en el gimnasio.** Construida la pantalla 3
   entera (`spec.md` §4.7): `SerieActiva` (una sola serie visible, steppers de 64 px prerrellenados con el
