@@ -3,9 +3,9 @@
 > **Este archivo se lee al empezar cada sesión de trabajo y se actualiza al terminarla.**
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
-**Última actualización:** 10/09/2026
-**Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** Siguiente: fase 1 — entrenamiento
-**Siguiente hito:** prototipar el modo entreno y probarlo en el gimnasio, antes de construir nada más del módulo
+**Última actualización:** 16/09/2026
+**Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** En curso: fase 1 — entrenamiento
+**Siguiente hito:** probar el modo entreno EN EL GIMNASIO (código ya listo) antes de construir nada más del módulo
 
 ---
 
@@ -36,7 +36,7 @@
 - [x] **Punto 11 — PRUEBA DE ACEPTACIÓN SUPERADA (10/09/2026).** Instalada en el iPhone desde la URL de producción. Registros creados en modo avión, app cerrada del todo, red recuperada, y todo llegó a Supabase solo. **29 filas subidas y cero desordenadas**, repartidas en solo 17 segundos distintos: varias creadas dentro del mismo segundo mantuvieron el orden correcto, que es el contador de secuencia del UUID v7 haciendo su trabajo en condiciones reales. Registros de prueba borrados del servidor después.
 
 ### Pendiente (fase 1)
-1. [ ] **Prototipar el modo entreno** (`spec.md` §4.7, pantalla 3 del wireframe) y **probarlo en el gimnasio** antes de construir nada más del módulo. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es cómodo con una mano y sin mirar, se rehace.
+1. [ ] **Prototipar el modo entreno** (`spec.md` §4.7, pantalla 3 del wireframe) — **código listo, falta probarlo en el gimnasio.** Ver nota de la sesión 16/09/2026 más abajo. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es cómodo con una mano y sin mirar, se rehace.
 2. [ ] Después: importador de Excel (§4.6), historial, sustituciones, vídeo y exportador.
 3. [ ] `core/ui/MetricChart` y el patrón `DetailView` (§2.8) entran en esta fase, y los reutilizan todos los módulos siguientes.
 
@@ -45,6 +45,33 @@
 ---
 
 ## Notas para la siguiente sesión
+
+- **16/09/2026 — Modo entreno prototipado, pendiente de probar en el gimnasio.** Construida la pantalla 3
+  entera (`spec.md` §4.7): `SerieActiva` (una sola serie visible, steppers de 64 px prerrellenados con el
+  objetivo, RIR 0–5, 3 chips del wireframe, nota opcional), `RestTimer` (cronómetro de descanso a pantalla
+  completa con `navigator.vibrate`), `useWakeLock` (Screen Wake Lock, se reintenta al volver a primer plano)
+  y `SustituirSheet` (buscador simple del catálogo + motivo). Todo en `src/modules/training/`. Nuevos
+  componentes de `core/ui`: `Stepper` y `Chip`. Ruta `/entreno/modo`, **fuera de `AppLayout`** a propósito
+  —sin barra de pestañas que distraiga a mitad de serie—, con botón "Empezar" desde `TrainingScreen`.
+  - **La sesión es real, no una maqueta**: `useSesionEntreno` crea un `workout_session` + sus
+    `session_exercises` de verdad en Dexie/outbox (misma puerta de escritura `core/db`, mismo camino de
+    sincronización ya verificado en el punto 11) y se puede abandonar y retomar, como pide la spec. Los dos
+    ejercicios y sus objetivos son de PRUEBA (`planEntrenoPrueba.ts`, se borra en cuanto exista el
+    importador de Excel §4.6): toma dos ejercicios reales del catálogo ya sincronizado —prefiere
+    "sentadilla" y "banca" por nombre, si no los encuentra coge los dos primeros— para que `exercise_id`
+    sea una fila real y la subida no la rechace la clave ajena.
+  - **Simplificaciones conscientes frente a la spec, para no sobreconstruir antes de la prueba física:**
+    el vídeo del ejercicio abre en pestaña nueva en vez de la hoja inferior con reproductor embebido que
+    pide §4.5 (no existe `BottomSheet` todavía); las etiquetas son las 3 que trae el wireframe
+    (`facil`/`al_fallo`/`molestia`), no las 7 de §4.4; "saltar" marca `skipped` en todo el ejercicio, no
+    solo la serie actual, porque el modelo de datos no tiene concepto de saltar una serie suelta. Ninguna
+    es una regresión de arquitectura: todas pasan por `core/db` igual que el resto de la app.
+  - `npm run build`, `npm run lint` y los 41 tests existentes, en verde. No se añadieron tests nuevos: es
+    exploratorio y `CLAUDE.md` pide no testear comportamiento que aún no está cerrado.
+  - **Sin probar en un dispositivo real todavía.** No se puede marcar el punto 1 de la fase 1 como hecho
+    hasta hacerlo. Antes de ir al gimnasio: iniciar sesión en el móvil, comprobar que el Wake Lock aguanta
+    con la pantalla bloqueada un rato, y que el stepper de peso (pasos de 2,5 kg) y de reps son cómodos con
+    una mano. Si algo no lo es, **se rehace antes de seguir** (es literalmente el criterio de la spec).
 
 - ✅ **INCIDENTE DE SEGURIDAD — 10/09/2026, CERRADO el mismo día. La clave `service_role` se publicó en el bundle del cliente.**
   **Cierre verificado:** la app usa `sb_publishable_…`, las claves legacy están desactivadas y la que estuvo expuesta devuelve **401**. Comprobado pidiendo datos con ella contra la API. En el primer despliegue a Vercel las dos variables se pegaron cruzadas: `VITE_SUPABASE_URL` recibió la clave anon y `VITE_SUPABASE_ANON_KEY` recibió la **`service_role`**, que se salta todas las políticas RLS. El resultado quedó accesible sin autenticación en `/assets/db-*.js`.
@@ -87,3 +114,4 @@
 | 10/09/2026 (noche) | Limpieza (spec duplicada, deriva del modelo de datos, semilla del catálogo). Puntos 8 y 9: shell, barra de 5 pestañas, router con división por rutas, dashboard y placeholders. Perfil con exportación a JSON. Configuración de despliegue. D19. 31 tests | Todo compila y las rutas responden, pero **nadie lo ha visto pintado**. Abrir la app y mirarla; luego desplegar |
 | 10/09/2026 | Vercel en vez de Netlify (D20). Tildes en toda la interfaz e iconos de coche y mancuerna rehechos. **Incidente de la `service_role`** y barrera `revisarConfig` con 7 tests. Punto 10 cerrado: desplegada y verificada en producción. 38 tests | Falta el punto 11: instalarla en el iPhone. Y confirmar la rotación de la clave y el borrado de despliegues antiguos |
 | 10/09/2026 (tarde) | Incidente cerrado migrando a las claves nuevas y desactivando las legacy: la expuesta devuelve 401. `context.md`. Corregidas fechas mal puestas. Arreglado el contador de pendientes, que tenía dos fuentes de verdad. **Punto 11 superado: la app instala en el iPhone y sincroniza sin cobertura.** 41 tests | ✅ **Fase 0 completa.** Empieza la fase 1: prototipar el modo entreno y probarlo en el gimnasio |
+| 16/09/2026 | Modo entreno prototipado (spec §4.7): `Stepper` y `Chip` en `core/ui`; `SerieActiva`, `RestTimer`, `useWakeLock`, `SustituirSheet` y `useSesionEntreno` en `modules/training`; ruta `/entreno/modo` fuera de `AppLayout`. Sesión real sobre `core/db`, con dos ejercicios de prueba tomados del catálogo (`planEntrenoPrueba.ts`, temporal hasta el importador de Excel). `npm run build/lint/test` en verde, 41 tests sin cambios | **Sin probar en el gimnasio todavía** — es el siguiente paso, antes de tocar nada más del módulo |

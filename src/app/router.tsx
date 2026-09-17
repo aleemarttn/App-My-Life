@@ -13,6 +13,14 @@ import { Dashboard } from "./Dashboard";
  * del modo entreno.
  */
 export const router = createBrowserRouter([
+  // Fuera de AppLayout a proposito: el modo entreno es secuencial y
+  // bloqueante (spec §4.7), sin barra de pestañas que distraiga.
+  {
+    path: "/entreno/modo",
+    lazy: async () => ({
+      Component: (await import("@/modules/training/ModoEntreno")).ModoEntreno,
+    }),
+  },
   {
     path: "/",
     Component: AppLayout,
