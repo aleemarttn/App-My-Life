@@ -10,6 +10,8 @@
 > (por qué) y `CLAUDE.md` (cómo se trabaja). **Si algo aquí contradice a esos, mandan
 > ellos.** Este archivo se queda desactualizado por naturaleza; los otros no, porque
 > el protocolo de trabajo obliga a mantenerlos.
+>
+> **Nota del 18/09/2026, sin reescribir lo de arriba:** desde esta foto del 10/09 la fase 0 se dio por completada y la fase 1 (entrenamiento) avanzo mucho -- importador de Excel, calendario semanal, detalle de ejercicio con graficas, modo entreno con HUD/RPE/e1RM en vivo, exportador a Excel, y un rediseno visual completo de Inicio y Entreno (D28-D30, sistema `Kinetic Obsidian`). Salud paso a ser su propia pestana, saliendo de Perfil (D29). **Sigue sin cumplirse lo unico que de verdad importa: probar el modo entreno en el gimnasio, con el dedo.** El detalle real y con fecha vive en `docs/estado.md`; esto es solo para que quien lea este archivo primero no se quede pensando que seguimos en el 10/09.
 
 ---
 

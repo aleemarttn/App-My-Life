@@ -33,12 +33,14 @@ My Life es una **PWA personal de registro y control** organizada en cinco domini
 | D4 | Naturaleza del proyecto | Personal, con puerta abierta a producto. Multi-tenant en datos (`user_id` + RLS), single-user en UX |
 | D5 | Comentarios de entrenamiento | Tres capas: RIR (número) + etiquetas (categoría) + nota libre (matiz). Ver §4.4 |
 | D6 | Intercambio con el entrenador | Excel bidireccional como contrato de datos. Ver §4.6 |
-| D7 | Navegación | Dashboard + 4 pestañas inferiores. Ver §2.7 |
+| D7 | Navegación | Dashboard + pestañas inferiores. **Superado por D29** (18/09/2026): eran 5, ahora 6 -- Salud se sumó. Ver §2.7 |
 | D8 | Jerarquía de la rutina | Rutina (mesociclo) → **semana** → día → ejercicio. Ver §4.3 |
 | D9 | Fotos de progreso | Supabase Storage, bucket privado con URLs firmadas. Ver §5 |
 | D10 | Salud de iOS | Vía Atajos, con las cinco métricas: peso, pasos, calorías activas, sueño y FC en reposo. Ver §9 |
-| D11 | Cuerpo y salud | **No** es una pestaña propia: vive dentro de **Perfil**, en la cabecera. Ver §2.7 y §5 |
+| D11 | Cuerpo y salud | **Parcialmente superado por D29** (18/09/2026): Salud (que incluye lo que era Cuerpo) pasa a pestaña propia. Perfil se queda solo con cuenta, sincronización y ajustes. Ver §2.7 y §5 |
 | D12 | Gráficas | Patrón único `DetailView` reutilizado por todos los módulos. Agregación en cliente, no en Postgres. Ver §2.8 |
+
+> **A partir de D13 el log completo (con motivo) vive solo en `decisiones.md`, append-only.** Esta tabla se quedo fijada en las 12 decisiones de la v0.4 (09/09/2026) y no se ha mantenido al dia; D13-D30 estan documentadas alli, no aqui. Las que afectan directamente a este documento ya se anotan en linea (D20 en §2.1, D25 en §4.9, D28-D30 en §2.7 y §4.7).
 
 ### 1.1 Por qué el coche va en segunda posición
 
@@ -55,7 +57,7 @@ El módulo de coche es el más barato de construir (cuatro tablas, un cron, UI m
 | Frontend | **Vite + React + TypeScript** | La app es 100% interactiva tras el login y no necesita SEO. Astro (usado en RPRE) brilla en contenido estático con islas; aquí solo añadiría fricción de enrutado y estado cliente. |
 | PWA | **vite-plugin-pwa** (Workbox) | Manifest, service worker y precaché del app-shell sin escribir SW a mano. |
 | Estilos | **Tailwind CSS** | Control fino de zonas táctiles, crítico en el modo entreno. |
-| Estado servidor | **TanStack Query** | Caché, revalidación y estados de carga/error resueltos. |
+| Estado servidor | **Ninguna libreria aparte** | Se planeo TanStack Query en esta version, pero nunca hizo falta: la UI lee de Dexie con `useLiveQuery` (dexie-react-hooks), que ya resuelve reactividad, carga y sincronizacion en tiempo real sin una capa mas encima. No esta instalada. |
 | Persistencia local | **Dexie (IndexedDB)** | Obligatorio (§2.3). `localStorage` no sirve: síncrono, ~5 MB, sin índices. |
 | Excel | **SheetJS (xlsx)** | Import y export en el navegador. El archivo nunca sale del dispositivo. |
 | Backend | **Supabase** — Postgres, Auth, RLS, Storage, Edge Functions, `pg_cron` | Ya lo usas y cubre los cinco requisitos sin añadir proveedores. |
@@ -156,12 +158,9 @@ Barra inferior de 6 elementos desde el 18/09/2026 (D29 amplía D7/D11), ordenado
 
 **Por qué Salud sí pasó a pestaña (D29, 18/09/2026):** el argumento de arriba seguía siendo válido para cuerpo/salud como conjunto -- consulta semanal, no acción diaria. El lienzo de referencia que compartió Alejandro trata Salud específicamente como una consulta diaria (índice de preparación, peso en ayunas, sueño, HRV), al mismo nivel que Entreno, y reserva su hueco en la barra en los cinco mockups. Se acepta esa premisa nueva porque viene de una decisión explícita, no de una duda técnica: el resto de Perfil (ajustes, cuenta, datos) sigue siendo semanal y se queda en la cabecera.
 
-**Dashboard "Inicio"** — lo que ves al abrir la app:
-- Entrenamiento de hoy (o botón de empezar / "descanso").
-- Alertas activas del coche (próximo mantenimiento, km pendientes de actualizar).
-- Gasto acumulado del mes vs. presupuesto.
-- Macros del día vs. objetivo (fase 4).
-- Peso actual y tendencia a 30 días (enlace al perfil).
+**Dashboard Inicio** (reconstruido 18/09/2026, D29):
+- Entrenamiento de hoy o sesion en curso, con datos reales.
+- Accesos a Coche, Dinero, Comida y Salud sin datos inventados.
 
 Cada tarjeta es un acceso directo a su módulo. Tema oscuro por defecto.
 
@@ -568,17 +567,19 @@ Se calcula en cliente, sobre la mejor serie de trabajo de cada sesión (excluyen
 
 ---
 
-## 5. Perfil: cuerpo y salud (D11)
+## 5. Salud: cuerpo y datos de Salud (D11, superado por D29)
 
-**No es una pestaña de la barra inferior.** Se accede desde el avatar de la cabecera y agrupa todo lo que eres tú, no lo que haces: composición corporal, datos de Salud, ajustes y cuenta.
+**Hasta el 18/09/2026 esto vivia dentro de Perfil** (D11), sin pestaña propia. **D29 lo saca a su propia pestaña** (Salud, sexta de la barra inferior, `src/modules/health`), porque el lienzo de referencia la trata como consulta diaria, no semanal. Perfil (avatar de la cabecera) se queda con cuenta, sincronizacion, objetivos y ajustes -- ver §2.7.
 
 ```
-PERFIL
-├── Cuerpo          peso · medidas · fotos · comparador
-├── Salud           datos de Salud de iOS (§9)
+SALUD (pestana propia, D29)
+├── Cuerpo          peso, medidas, fotos, comparador
+└── Salud           datos de Salud de iOS, §9
+
+PERFIL (avatar de la cabecera)
 ├── Objetivos       peso objetivo, macros objetivo, RIR de referencia
-├── Ajustes         cronómetro on/off, tema, unidades, Telegram
-└── Datos           exportar todo a JSON · cerrar sesión
+├── Ajustes         cronometro on/off, tema, unidades, Telegram
+└── Datos           exportar todo a JSON, cerrar sesion
 ```
 
 Zona de composición corporal: peso, medidas y fotos de progreso.
@@ -838,7 +839,7 @@ El peso importado desde Salud alimenta automáticamente `body_metrics`, así no 
 |---|---|---|---|
 | **0 — Cimientos** | Repo, CLAUDE.md + docs, Vite+React+PWA, Supabase, Auth, RLS, Dexie + outbox, shell y navegación, deploy | ~1 semana | La app instala en el móvil, autentica y sincroniza un dato estando offline |
 | **1 — Entrenamiento** | §4 completo: importador, modo entreno, sustituciones, vídeo, historial, exportador. Incluye `core/ui/MetricChart` y el patrón `DetailView` (§2.8), que después reutilizan todos los módulos | ~3,5 semanas | 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque |
-| **1.5 — Perfil** | §5: cuerpo, medidas, fotos, comparador y sus gráficas | ~5 días | Primera comparativa de fotos a 4 semanas y curva de peso con media móvil |
+| **1.5 — Salud** | §5: cuerpo, medidas, fotos, comparador y sus gráficas -- pestaña propia desde D29, no dentro de Perfil | ~5 días | Primera comparativa de fotos a 4 semanas y curva de peso con media móvil |
 | **2 — Coche** | §6 completo, `pg_cron` + `scheduler-tick`, Telegram | ~1 semana | Llega una alerta real de umbral y el consumo L/100 km sale correcto |
 | **3 — Economía** | `parse-entry`, webhook Telegram, quick-add en PWA, migración del histórico, presupuestos, enlace con repostajes y mantenimientos. Atajo de Salud | ~2–3 semanas | El bot antiguo se puede apagar |
 | **4 — Nutrición** | Tras la entrega del TFG (octubre 2026) | por definir | — |

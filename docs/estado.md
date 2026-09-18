@@ -13,7 +13,7 @@
 
 ### Hecho
 - [x] Especificación funcional completa (`docs/spec.md` v0.4)
-- [x] Decisiones de alcance cerradas (`docs/decisiones.md`, D1–D19)
+- [x] Decisiones de alcance cerradas (`docs/decisiones.md`, D1-D30 a fecha 18/09/2026, append-only)
 - [x] Sistema de diseño definido (`docs/design.md`)
 - [x] **Punto 1** — Proyecto `wcmtrjjalwbchrmlsvow` con las **tres** migraciones aplicadas (10/09/2026)
 - [x] **Punto 2** — Vite 8 + React 19 + TS 6 (`react-ts`). `strict` activado a mano: la plantilla ya no lo trae
@@ -36,14 +36,16 @@
 - [x] **Punto 11 — PRUEBA DE ACEPTACIÓN SUPERADA (10/09/2026).** Instalada en el iPhone desde la URL de producción. Registros creados en modo avión, app cerrada del todo, red recuperada, y todo llegó a Supabase solo. **29 filas subidas y cero desordenadas**, repartidas en solo 17 segundos distintos: varias creadas dentro del mismo segundo mantuvieron el orden correcto, que es el contador de secuencia del UUID v7 haciendo su trabajo en condiciones reales. Registros de prueba borrados del servidor después.
 
 ### Pendiente (fase 1)
-1. [ ] **Prototipar el modo entreno** (`spec.md` §4.7, pantalla 3 del wireframe) — **código listo, falta probarlo en el gimnasio.** Ver nota de la sesión 16/09/2026 más abajo. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es cómodo con una mano y sin mirar, se rehace.
+1. [ ] **Probar el modo entreno en el gimnasio** (`spec.md` §4.7, pantalla 3) — **sigue siendo el unico punto que falta de verdad.** Ya no es solo el prototipo del 16/09: desde entonces gano el importador real, el calendario, y el 18/09 el HUD de sesion, RPE, e1RM en vivo, copiar ultima sesion y el rediseno visual completo (D28-D30). Nada de eso sustituye la prueba fisica. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es comodo con una mano y sin mirar, se rehace.
 2. [x] **Importador de Excel (§4.6) — hecho el 17/09/2026.** Parseo y emparejamiento verificados contra `docs/plantillas/rutina-ejemplo.xlsx`; falta ejecutarlo contra la base real con sesión iniciada.
 3. [ ] **Aparcado a propósito (18/09/2026): capa LLM para leer cualquier formato de Excel.** El importador de hoy exige el formato canónico de columnas de §4.6, no un Excel "como lo mandaría un entrenador de verdad" (bloques de día, notación combinada "4x8-10", descanso en texto). Encaja exactamente con el patrón que §2.5/D2 ya describe para `parse-entry` —capa determinista primero, capa LLM solo de fallback, JSON estricto contra esquema— aplicado aquí a la Edge Function que traduciría el Excel libre al formato canónico antes de pasar por la validación y el emparejamiento ya construidos, que no cambiarían. Se decidió no construirla todavía: primero consolidar el formato fijo (hecho), luego la capa de IA. Falta elegir proveedor (Gemini/Claude/OpenAI) y el usuario tiene que poner la clave en secretos de Supabase —no se puede hacer desde aquí—.
 4. [x] **Calendario de la semana y detalle de ejercicio — hecho el 18/09/2026.** Ver nota de la sesión más abajo.
 5. [x] **`core/ui/MetricChart` y el patrón `DetailView` (§2.8) — hechos el 18/09/2026.** Los reutilizan todos los módulos siguientes (peso en Perfil, categoría de gasto en Dinero, consumo en Coche).
 6. [x] **Vídeo en hoja inferior — hecho el 18/09/2026 (tarde).** `core/ui/BottomSheet.tsx` (el componente del inventario de `design.md` §6 que faltaba) y `modules/training/VideoSheet.tsx`. Ver nota de la sesión más abajo.
 7. [x] **Exportador a Excel — hecho el 18/09/2026 (tarde).** `modules/training/exportarRutina.ts`, D26. Ver nota de la sesión más abajo.
-8. [ ] **Pendiente de probar con el dedo**, igual que el importador: el calendario, el detalle de ejercicio, la hoja de vídeo y el exportador nunca se han visto contra datos reales de Supabase con sesión iniciada — todo compila, pasa lint y pasa sus tests con datos inventados o de ejemplo. No se pudo entrar en la app durante esta sesión porque el login exige la contraseña de la cuenta y eso no se hace desde aquí.
+8. [x] **Verificado en el navegador la noche del 18/09/2026, con datos reales** (sesión ya iniciada de una prueba anterior, sin escribir la contraseña): el calendario, el detalle de ejercicio, la hoja de vídeo, el HUD del modo entreno con e1RM en vivo y la secuencia de series se vieron funcionando contra Supabase real, no solo en tests con datos inventados. **Sigue pendiente que Alejandro lo confirme con su propio dedo**, sobre todo en el móvil, que es donde importa de verdad (pantalla pequeña, con una mano, sudando).
+
+9. [x] **Rediseno visual completo (Inicio + todo Entreno) al sistema `Kinetic Obsidian` -- hecho el 18/09/2026 (noche), D28-D30.** Salud pasa a sexta pestana. Ver nota de la sesion mas abajo.
 
 **Criterio de salida de la fase 1:** 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque.
 

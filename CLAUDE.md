@@ -1,6 +1,6 @@
 # My Life — Contrato de trabajo
 
-PWA personal de registro y control. Cuatro pestañas —entrenamiento, nutrición, economía y coche— más **Perfil** en la cabecera, que contiene cuerpo y salud.
+PWA personal de registro y control. Seis pestañas -- inicio, entrenamiento, comida, dinero, coche y salud (D29) -- más **Perfil** en la cabecera, que desde D29 es solo cuenta, sincronización y ajustes (cuerpo y salud viven en su propia pestaña, no en Perfil).
 Usuario único (Alejandro), sin publicación en App Store. Español, tema oscuro por defecto.
 
 \---
@@ -45,7 +45,7 @@ Este archivo se mantiene **por debajo de 150 líneas** a propósito: se carga en
 * **Gráficas:** Recharts, con carga diferida y envuelto en `core/ui/MetricChart`
 * **PWA:** vite-plugin-pwa (Workbox)
 * **Estilos:** Tailwind CSS
-* **Estado servidor:** TanStack Query
+* **Estado servidor:** ninguna libreria aparte -- la UI lee de Dexie con useLiveQuery (dexie-react-hooks), que ya es reactivo; TanStack Query se penso en la v0.4 de spec.md pero nunca hizo falta y no esta instalado
 * **Persistencia local:** Dexie (IndexedDB) — obligatorio, la app es offline-first
 * **Excel:** SheetJS, import y export en el navegador
 * **Backend:** Supabase — Postgres, Auth, RLS, Storage, Edge Functions, pg\_cron
@@ -57,12 +57,12 @@ Este archivo se mantiene **por debajo de 150 líneas** a propósito: se carga en
 ```
 src/
 ├── app/        shell, router, layout, navegación
-├── modules/    training · body · car · finance · nutrition
+├── modules/    training · health · car · finance · nutrition
 └── core/       db (Dexie + outbox) · supabase · xlsx · ui
 supabase/
 ├── migrations/
 └── functions/  parse-entry · telegram-webhook · health-ingest · scheduler-tick
-docs/           spec.md · estado.md · decisiones.md
+docs/           spec.md · design.md · estado.md · decisiones.md
 ```
 
 \---
@@ -125,5 +125,5 @@ docs/           spec.md · estado.md · decisiones.md
 
 **Fase 0 — Cimientos: COMPLETADA** el 10/09/2026. Desplegada en https://app-my-life.vercel.app, instalada en el iPhone y con la sincronización offline verificada de extremo a extremo.
 
-**Fase 1 — Entrenamiento.** Lo primero es prototipar el modo entreno (`spec.md` §4.7) y probarlo en el gimnasio **antes de construir nada más**: es la pantalla que decide el proyecto. Ver `docs/estado.md`.
+**Fase 1 — Entrenamiento, en curso.** Importador de Excel, calendario semanal, detalle de ejercicio con graficas, modo entreno completo (HUD, RPE, e1RM en vivo, copiar ultima sesion) y exportador a Excel ya construidos. Rediseno visual completo el 18/09/2026 (D28-D30, ver `design.md`). **Sigue sin cumplirse el criterio que manda sobre todos los demas**: probar el modo entreno en el gimnasio, con el dedo, en una sesion real. Nada de lo construido despues invalida esa prueba pendiente. Ver `docs/estado.md`.
 
