@@ -4,7 +4,9 @@ import { db, usuarioActualId } from "@/core/db";
 import { Button } from "@/core/ui/Button";
 import { Card } from "@/core/ui/Card";
 import { EmptyState } from "@/core/ui/EmptyState";
-import { calcularProximoEntreno } from "./proximoEntreno";
+import { CalendarioSemana } from "./CalendarioSemana";
+import { objetivoCorto } from "./formato";
+import { calcularProximoEntreno, calcularSemanaActual } from "./proximoEntreno";
 
 /** Lunes a las 00:00 de la semana de `fecha` (semana ISO, no la del domingo). */
 function inicioDeSemana(fecha: Date): Date {
@@ -15,38 +17,15 @@ function inicioDeSemana(fecha: Date): Date {
   return d;
 }
 
-function objetivoCorto(re: {
-  target_sets: number | null;
-  target_reps_min: number | null;
-  target_reps_max: number | null;
-  target_weight: number | null;
-  target_duration_seconds: number | null;
-  target_distance_m: number | null;
-}): string {
-  const partes: string[] = [];
-  if (re.target_sets != null) partes.push(`${re.target_sets}×`);
-
-  const min = re.target_reps_min;
-  const max = re.target_reps_max;
-  if (min != null || max != null) {
-    partes.push(min != null && max != null && min !== max ? `${min}-${max}` : `${max ?? min}`);
-  }
-  if (re.target_weight != null) partes.push(`· ${re.target_weight} kg`);
-  if (re.target_duration_seconds != null) partes.push(`· ${Math.round(re.target_duration_seconds / 60)} min`);
-  if (re.target_distance_m != null) partes.push(`· ${re.target_distance_m / 1000} km`);
-
-  return partes.join(" ");
-}
-
 /**
  * Portada del modulo de entrenamiento (pantalla 2 del wireframe, spec §7):
- * resumen de la semana y el entreno que toca, con el boton que lleva al
- * modo entreno (pantalla 3). Registrar una serie nunca deberia ser la
- * primera pantalla que se ve: primero se orienta, luego se actua
- * (design.md §1).
+ * resumen de la semana, el calendario de la semana en curso del mesociclo y
+ * el entreno que toca, con el boton que lleva al modo entreno (pantalla 3).
+ * Registrar una serie nunca deberia ser la primera pantalla que se ve:
+ * primero se orienta, luego se actua (design.md §1).
  *
- * Falta de la fase 1: el historial, el exportador y las vistas de §4.9
- * —volumen por grupo muscular, adherencia y molestias recurrentes—.
+ * Falta de la fase 1: el exportador y las vistas globales de §4.9 —volumen
+ * por grupo muscular, adherencia y molestias recurrentes—.
  */
 export function TrainingScreen() {
   const navigate = useNavigate();
@@ -81,6 +60,7 @@ export function TrainingScreen() {
   );
 
   const proximo = useLiveQuery(async () => (userId ? await calcularProximoEntreno(userId) : null), [userId]);
+  const semana = useLiveQuery(async () => (userId ? await calcularSemanaActual(userId) : null), [userId]);
 
   if (proximo === undefined) return null; // Dexie responde en milisegundos
 
@@ -118,20 +98,30 @@ export function TrainingScreen() {
         </p>
 
         <ul className="mb-4 space-y-1.5">
-          {proximo.ejercicios.map((item) => (
-            <li key={item.routineExercise.id} className="text-body flex items-baseline justify-between gap-3">
-              <span className="truncate">{item.exercise?.name ?? "—"}</span>
-              <span className="text-label shrink-0 tabular-nums text-text-muted">
-                {objetivoCorto(item.routineExercise)}
-              </span>
-            </li>
-          ))}
+          {proximo.ejercicios.map((item) =>
+            item.exercise ? (
+              <li key={item.routineExercise.id}>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/entreno/ejercicio/${item.exercise!.id}`)}
+                  className="text-body flex w-full items-baseline justify-between gap-3 text-left active:opacity-70"
+                >
+                  <span className="truncate">{item.exercise.name}</span>
+                  <span className="text-label shrink-0 tabular-nums text-text-muted">
+                    {objetivoCorto(item.routineExercise)}
+                  </span>
+                </button>
+              </li>
+            ) : null,
+          )}
         </ul>
 
         <Button onClick={() => navigate("/entreno/modo")}>
           {sesionActiva ? "Continuar entrenamiento" : "Iniciar entrenamiento"}
         </Button>
       </Card>
+
+      {semana && <CalendarioSemana weekNumber={semana.weekNumber} dias={semana.dias} />}
 
       <Card titulo="Rutina">
         <p className="text-body mb-3 text-text-muted">{proximo.rutina.name}</p>

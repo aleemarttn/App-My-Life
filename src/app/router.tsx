@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router";
 import { AppLayout } from "./AppLayout";
 import { Dashboard } from "./Dashboard";
 
@@ -19,6 +19,17 @@ export const router = createBrowserRouter([
     path: "/entreno/modo",
     lazy: async () => ({
       Component: (await import("@/modules/training/ModoEntreno")).ModoEntreno,
+    }),
+  },
+  // Tambien fuera de AppLayout: el DetailView (spec §2.8) lleva su propia
+  // cabecera con flecha de volver, como en el wireframe de la pantalla 5.
+  // Apilar ahi encima la barra de pestañas y el titulo del AppShell habria
+  // sido cabecera duplicada. El bundle de Recharts (~100 kB) solo se
+  // descarga al entrar aqui, nunca en el arranque del modo entreno.
+  {
+    path: "/entreno/ejercicio/:exerciseId",
+    lazy: async () => ({
+      Component: (await import("@/modules/training/DetalleEjercicioScreen")).DetalleEjercicioScreen,
     }),
   },
   {

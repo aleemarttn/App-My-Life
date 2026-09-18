@@ -1,4 +1,4 @@
-﻿import { fileURLToPath, URL } from "node:url";
+import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
@@ -53,8 +53,10 @@ export default defineConfig({
 
         // SheetJS pesa 492 kB y solo hace falta al importar una rutina, que
         // pasa una vez por mesociclo y con red. Precachearlo triplicaria el
-        // arranque de la app para algo que casi nunca se usa.
-        globIgnores: ["**/xlsx-*.js"],
+        // arranque de la app para algo que casi nunca se usa. Lo mismo pasa
+        // con Recharts (D12, ~100 kB gzip): solo entra al abrir el detalle
+        // de un ejercicio, nunca en el arranque del modo entreno.
+        globIgnores: ["**/xlsx-*.js", "**/DetalleEjercicioScreen-*.js"],
         navigateFallback: "index.html",
         cleanupOutdatedCaches: true,
       },

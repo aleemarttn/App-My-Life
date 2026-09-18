@@ -1,9 +1,9 @@
-﻿# Estado del proyecto
+# Estado del proyecto
 
 > **Este archivo se lee al empezar cada sesión de trabajo y se actualiza al terminarla.**
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
-**Última actualización:** 17/09/2026
+**Última actualización:** 18/09/2026
 **Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** En curso: fase 1 — entrenamiento
 **Siguiente hito:** probar en el gimnasio el circuito completo — importar rutina, entrenarla y ver que sube
 
@@ -39,14 +39,66 @@
 1. [ ] **Prototipar el modo entreno** (`spec.md` §4.7, pantalla 3 del wireframe) — **código listo, falta probarlo en el gimnasio.** Ver nota de la sesión 16/09/2026 más abajo. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es cómodo con una mano y sin mirar, se rehace.
 2. [x] **Importador de Excel (§4.6) — hecho el 17/09/2026.** Parseo y emparejamiento verificados contra `docs/plantillas/rutina-ejemplo.xlsx`; falta ejecutarlo contra la base real con sesión iniciada.
 3. [ ] **Aparcado a propósito (18/09/2026): capa LLM para leer cualquier formato de Excel.** El importador de hoy exige el formato canónico de columnas de §4.6, no un Excel "como lo mandaría un entrenador de verdad" (bloques de día, notación combinada "4x8-10", descanso en texto). Encaja exactamente con el patrón que §2.5/D2 ya describe para `parse-entry` —capa determinista primero, capa LLM solo de fallback, JSON estricto contra esquema— aplicado aquí a la Edge Function que traduciría el Excel libre al formato canónico antes de pasar por la validación y el emparejamiento ya construidos, que no cambiarían. Se decidió no construirla todavía: primero consolidar el formato fijo (hecho), luego la capa de IA. Falta elegir proveedor (Gemini/Claude/OpenAI) y el usuario tiene que poner la clave en secretos de Supabase —no se puede hacer desde aquí—.
-4. [ ] Queda: historial por ejercicio, vídeo en hoja inferior y exportador a Excel.
-5. [ ] `core/ui/MetricChart` y el patrón `DetailView` (§2.8) entran en esta fase, y los reutilizan todos los módulos siguientes.
+4. [x] **Calendario de la semana y detalle de ejercicio — hecho el 18/09/2026.** Ver nota de la sesión más abajo. Queda: vídeo en hoja inferior (hoy abre en pestaña nueva) y el exportador a Excel.
+5. [x] **`core/ui/MetricChart` y el patrón `DetailView` (§2.8) — hechos el 18/09/2026.** Los reutilizan todos los módulos siguientes (peso en Perfil, categoría de gasto en Dinero, consumo en Coche).
+6. [ ] **Pendiente de probar con el dedo**, igual que el importador: el calendario y el detalle de ejercicio nunca se han visto contra datos reales de Supabase, solo compilan y pasan sus tests con datos inventados.
 
 **Criterio de salida de la fase 1:** 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque.
 
 ---
 
 ## Notas para la siguiente sesión
+
+- **18/09/2026 — Calendario de la semana y detalle de ejercicio (`DetailView`), con datos reales de principio a fin.**
+  Petición de la sesión: terminar la portada de Entreno con un "calendario" de la semana y poder entrar en cada
+  ejercicio a ver su progreso. Sin tocar el modo entreno.
+  - **`proximoEntreno.ts` se parte en dos funciones sobre un contexto compartido** (`cargarContexto`): la ya
+    existente `calcularProximoEntreno` y la nueva `calcularSemanaActual`, que devuelve los días de la semana
+    lógica del mesociclo en curso (misma `week_number` que el día que toca) con su estado —`hecho` /
+    `proximo` / `pendiente`— y sus ejercicios. No son fechas de calendario real: es la aplicación directa de
+    D23 a la portada, tal y como pedía la spec §4.9 ("vistas globales de la portada").
+  - **`CalendarioSemana.tsx`** pinta esos días como una lista con marcador de estado; cada ejercicio es un
+    botón que navega a su detalle. `formato.ts` saca `objetivoCorto()` de `TrainingScreen.tsx` para no
+    duplicarlo entre los dos.
+  - **El patrón `DetailView` (spec §2.8, D12) existe por primera vez**: `core/ui/DetailView.tsx` (cabecera +
+    valor/delta + gráfico + selectores + lista de registros) y `core/ui/MetricChart.tsx` (envoltorio único de
+    Recharts, con los marcadores de `molestia` en rojo y de sustitución huecos que pide spec §4.9).
+    `core/ui/SegmentedControl.tsx` es el componente que le faltaba al inventario de `design.md` §6 para los
+    selectores de rango y métrica.
+  - **Se instaló `recharts`** (39 paquetes, sin vulnerabilidades): es la librería que `CLAUDE.md` y `spec.md`
+    §2.8 ya daban por elegida, solo que hasta hoy no hacía falta ninguna gráfica.
+  - **`metricas.ts`** (módulo sin UI, con 15 tests en `metricas.test.ts`) calcula las cinco métricas de fuerza
+    de spec §4.9 —e1RM por Epley, peso máximo, tonelaje, RIR medio, reps totales— más duración/distancia para
+    cardio, tiempo y distancia. `useHistorialEjercicio.ts` es el hook que junta esto con Dexie: agrupa
+    `set_logs` por sesión, decide qué metricas ofrece según `exercises.kind`, filtra por rango (30 d/90 d/1
+    a/todo) y arma la lista de registros. **Toda la agregación es en cliente**, como exige spec §2.8: nunca
+    una vista de Postgres, porque tiene que funcionar sin cobertura.
+  - **Detalle importante para no confundir "sin datos todavía" con "saltado":** un `session_exercise` recién
+    creado por el snapshot de una sesión en curso no tiene series todavía porque no se ha llegado a él, no
+    porque se haya saltado. El hook lo distingue por `session_exercises.skipped`, no por si hay o no
+    `set_logs`; si no, cualquier ejercicio pendiente de una sesión a medias aparecería como "Saltado" en el
+    historial de otro día.
+  - **Ruta `/entreno/ejercicio/:exerciseId`, perezosa y FUERA de `AppLayout`** (D24): como `/entreno/modo`,
+    con su propia cabecera y sin barra de pestañas, para no apilar dos cabeceras. Recharts (~110 kB gzip)
+    queda excluido del precaché del service worker igual que SheetJS (D21): se añadió
+    `**/DetalleEjercicioScreen-*.js` a `globIgnores` en `vite.config.ts` y el precaché volvió de 1,08 MiB a
+    700 KiB.
+  - **D25:** en las gráficas de e1RM, peso máximo, duración y distancia el eje Y no fuerza el cero —igual que
+    el peso corporal de `design.md` §9—; en tonelaje y reps totales sí, porque son sumas de trabajo.
+  - **Dos fallos de build encontrados y corregidos, no relacionados con esta tarea pero que bloqueaban
+    `npm run build`:** `tsconfig.app.json` no tenía `"node"` en `"types"`, así que `importarEjemplo.test.ts`
+    (que ya usaba `node:fs` desde el 17/09) rompía `tsc -b` en cuanto se tocaba cualquier otro archivo del
+    proyecto — nadie lo había notado porque `vitest` no pasa por `tsc`. Corregido añadiendo `"node"` a la
+    lista. Los otros dos eran de tipos de Recharts (`Tooltip`/`Axis` con `unknown` en vez de tipos
+    demasiado estrechos) y de `exactOptionalPropertyTypes` en `DetailView`.
+  - **80 tests** (65 + 15 nuevos de `metricas.ts`), `npm run build` y `npm run lint` en verde.
+  - **Sin probar contra Supabase real todavía.** El calendario y el detalle de ejercicio solo se han visto
+    compilar y pasar tests con datos inventados: no hay sesión iniciada en este entorno para comprobarlos con
+    el dedo. Primera prueba pendiente: importar una rutina, registrar un par de series de un ejercicio en dos
+    días distintos, y comprobar que el calendario marca el día como hecho y que el detalle del ejercicio
+    dibuja el punto y el registro correctos.
+  - **Sigue sin hacerse la prueba del gimnasio** (punto 1 de la fase 1): esta sesión trabajó sobre la
+    portada, no sobre el modo entreno, así que ese hito sigue exactamente donde estaba el 16/09.
 
 - **17/09/2026 — Importador de Excel hecho, y el módulo ya funciona con rutina real.** Los datos de prueba
   (`planEntrenoPrueba.ts`) están **borrados**: la app ya no inventa nada.
@@ -145,3 +197,5 @@
 | 10/09/2026 | Vercel en vez de Netlify (D20). Tildes en toda la interfaz e iconos de coche y mancuerna rehechos. **Incidente de la `service_role`** y barrera `revisarConfig` con 7 tests. Punto 10 cerrado: desplegada y verificada en producción. 38 tests | Falta el punto 11: instalarla en el iPhone. Y confirmar la rotación de la clave y el borrado de despliegues antiguos |
 | 10/09/2026 (tarde) | Incidente cerrado migrando a las claves nuevas y desactivando las legacy: la expuesta devuelve 401. `context.md`. Corregidas fechas mal puestas. Arreglado el contador de pendientes, que tenía dos fuentes de verdad. **Punto 11 superado: la app instala en el iPhone y sincroniza sin cobertura.** 41 tests | ✅ **Fase 0 completa.** Empieza la fase 1: prototipar el modo entreno y probarlo en el gimnasio |
 | 16/09/2026 | Modo entreno prototipado (spec §4.7): `Stepper` y `Chip` en `core/ui`; `SerieActiva`, `RestTimer`, `useWakeLock`, `SustituirSheet` y `useSesionEntreno` en `modules/training`; ruta `/entreno/modo` fuera de `AppLayout`. Sesión real sobre `core/db`, con dos ejercicios de prueba tomados del catálogo (`planEntrenoPrueba.ts`, temporal hasta el importador de Excel). `npm run build/lint/test` en verde, 41 tests sin cambios | **Sin probar en el gimnasio todavía** — es el siguiente paso, antes de tocar nada más del módulo |
+| 17/09/2026 | Importador de Excel completo (§4.6, D21, D22): `core/xlsx.ts`, `importarFormato.ts`, `importarEmparejar.ts`, `importarRutina.ts`, `ImportarRutinaScreen.tsx`. `proximoEntreno.ts` y D23 sustituyen los datos de prueba por la rutina real en toda la portada y el modo entreno. Excel de ejemplo en `docs/plantillas/rutina-ejemplo.xlsx`. 65 tests | Falta probar el importador con el dedo contra Supabase real (hace falta sesión iniciada) |
+| 18/09/2026 | Calendario de la semana (`CalendarioSemana.tsx`, `calcularSemanaActual`) y detalle de ejercicio: patrón `DetailView` (§2.8, D12) y `MetricChart` (Recharts) por primera vez, `metricas.ts` con las cinco métricas de §4.9, ruta `/entreno/ejercicio/:exerciseId` fuera de `AppLayout` (D24), eje Y sin cero para pesos (D25). Corregidos dos fallos de build preexistentes (`tsconfig` sin tipos de Node, tipos de Recharts). 80 tests, build y lint en verde | **Sin probar contra Supabase real.** Sigue pendiente la prueba del gimnasio del punto 1, que esta sesión no tocó |
