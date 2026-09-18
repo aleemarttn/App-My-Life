@@ -1,18 +1,12 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Button } from "@/core/ui/Button";
 
 interface RestTimerProps {
-  /** Cambia (id) para reiniciar la cuenta atras al empezar un descanso nuevo. */
   clave: string;
   segundos: number;
   onTerminar: () => void;
 }
 
-/**
- * Cronometro de descanso a pantalla completa, con aviso haptico (spec §4.7).
- * Activable/desactivable en ajustes queda pendiente (asuncion 3, sin pantalla
- * de ajustes todavia): por ahora siempre esta encendido.
- */
 export function RestTimer({ clave, segundos, onTerminar }: RestTimerProps) {
   const [restante, setRestante] = useState(segundos);
 
@@ -37,8 +31,8 @@ export function RestTimer({ clave, segundos, onTerminar }: RestTimerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-bg px-6">
-      <p className="text-label text-text-muted">Descanso</p>
-      <p className="text-display tabular-nums">
+      <p className="text-label-md uppercase text-text-muted">Descanso</p>
+      <p className="font-mono text-display tabular-nums text-accent">
         {mm}:{ss}
       </p>
       <Button variant="secondary" onClick={onTerminar} className="max-w-xs">

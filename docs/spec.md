@@ -142,17 +142,19 @@ Edge Function `parse-entry`. Entrada `{texto, canal, user_id}`, salida un evento
 - El webhook de Telegram valida el `secret_token` de cabecera y una lista blanca de `chat_id`.
 - **Fotos de progreso**: bucket privado de Supabase Storage, políticas por `user_id`, acceso solo mediante URLs firmadas de caducidad corta. Nunca un bucket público.
 
-### 2.7 Navegación (D7, D11)
+### 2.7 Navegación (D7, D11, D29)
 
-Barra inferior de 5 elementos, ordenados por frecuencia de uso real:
+Barra inferior de 6 elementos desde el 18/09/2026 (D29 amplía D7/D11), ordenados por frecuencia de uso real:
 
 ```
-[ Inicio ]  [ Entreno ]  [ Comida ]  [ Dinero ]  [ Coche ]
+[ Inicio ]  [ Entreno ]  [ Comida ]  [ Dinero ]  [ Coche ]  [ Salud ]
 ```
 
-**Perfil** vive en la cabecera (avatar arriba a la derecha), **no en la barra inferior** (D11). Es el contenedor de todo lo que eres tú y no una actividad: cuerpo, salud, ajustes y datos de la cuenta. Ver §5.
+**Perfil** vive en la cabecera (avatar arriba a la derecha), **no en la barra inferior** (D11). Desde D29 ya no contiene cuerpo ni salud -- esos salieron a su propia pestaña -- y es solo cuenta, sincronización, ajustes y datos. Ver §5.
 
 **Por qué ahí y no como sexta pestaña:** las cinco pestañas inferiores son *acciones que haces a diario*; el perfil es *consulta y configuración*, que se abre una vez a la semana. Meterlo abajo le daría el mismo peso visual que a "Entreno" y competiría por el espacio del pulgar sin merecerlo. Además, seis elementos en una barra inferior ya rompen la zona táctil cómoda en pantallas de 6".
+
+**Por qué Salud sí pasó a pestaña (D29, 18/09/2026):** el argumento de arriba seguía siendo válido para cuerpo/salud como conjunto -- consulta semanal, no acción diaria. El lienzo de referencia que compartió Alejandro trata Salud específicamente como una consulta diaria (índice de preparación, peso en ayunas, sueño, HRV), al mismo nivel que Entreno, y reserva su hueco en la barra en los cinco mockups. Se acepta esa premisa nueva porque viene de una decisión explícita, no de una duda técnica: el resto de Perfil (ajustes, cuenta, datos) sigue siendo semanal y se queda en la cabecera.
 
 **Dashboard "Inicio"** — lo que ves al abrir la app:
 - Entrenamiento de hoy (o botón de empezar / "descanso").
@@ -531,6 +533,7 @@ La pantalla que decide el proyecto. Se usa de pie, sudando, con una mano.
 - Pantalla siempre encendida durante la sesión (Screen Wake Lock API).
 - `Sustituir` abre el buscador del catálogo y registra el motivo en `session_exercises`.
 - La sesión se puede abandonar y retomar: el estado vive en Dexie.
+- **Anadido 18/09/2026 (D28/D30), sobre el mismo principio, no en su lugar:** HUD de sesión (cronómetro, Pausar sin persistir, Fin manual), e1RM en vivo, copiar última sesión en 1-tap, selector etiquetado RPE que sigue escribiendo RIR por dentro, y una lista de solo lectura con el estado de cada serie del ejercicio.
 
 ### 4.8 Progresión
 

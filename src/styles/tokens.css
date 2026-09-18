@@ -1,11 +1,21 @@
-/* =============================================================
-   Tokens de diseno — fuente unica de verdad.
-   Derivados de docs/design.md §2 (color), §3 (tipografia),
-   §4 (espaciado y radios) y §5 (zonas tactiles).
+﻿/* =============================================================
+   Tokens de diseno - fuente unica de verdad.
 
-   Los valores de color son la PROPUESTA de design.md §2, aun sin
-   contrastar contra el lienzo de Claude Design. Si hay que ajustar
-   alguno, se ajusta AQUI y en ningun otro sitio.
+   Sistema "Kinetic Obsidian" (D28, 18/09/2026): sustituye la
+   paleta/tipografia/radios de la v1 (design.md hasta esa fecha) por
+   los valores reales del mockup que compartio Alejandro (Stitch/
+   Claude Design), documentados en el DESIGN.md de ese lienzo. Anula
+   dos reglas explicitas de la v1: "sin webfonts" (ahora hay tres,
+   ver index.html) y "un solo color de acento" (ahora hay tres: lima,
+   cian y ambar, cada uno con un uso semantico fijo - D28).
+
+   Se mantienen los NOMBRES de variable de la v1 donde el concepto
+   sigue existiendo (bg, surface, accent, text-title...), solo
+   cambian los valores: asi no hay que tocar el className de cada
+   componente para heredar la paleta nueva. Los nombres nuevos
+   (surface-3, accent-2, accent-3, metric-*, label-md/sm...) son
+   piezas que no existian en la v1 y solo se usan donde se restylea
+   explicitamente (docs/decisiones.md D28).
 
    Tailwind v4: cada variable de @theme genera su utilidad
    (--color-surface -> bg-surface / text-surface / border-surface)
@@ -13,45 +23,54 @@
    ============================================================= */
 
 @theme {
-  /* ---- Superficies ---- */
-  --color-bg: #0b0c0e; /* fondo de la app */
-  --color-surface: #16181c; /* tarjetas */
-  --color-surface-2: #202329; /* elementos elevados, inputs, chips */
-  --color-border: #2a2e36; /* separadores y bordes de 1px */
+  /* ---- Superficies (capas tonales, sin sombra difusa - D28) ---- */
+  --color-bg: #0a0a0c; /* "surface void": fondo de la app */
+  --color-surface: #121216; /* tarjetas, nivel 1 */
+  --color-surface-2: #1a1a22; /* elevado: hojas, inputs activos, nivel 2 */
+  --color-surface-3: #242430; /* overlays/modales, nivel 3 */
+  --color-border: #1e1e28; /* separadores y bordes de 1px */
+  --color-border-focus: #d8ff3e; /* foco de teclado/tacto - usar con /40 */
 
   /* ---- Texto ---- */
-  --color-text: #f2f4f7; /* primario   — 16:1 sobre --bg */
-  --color-text-muted: #9ba3af; /* secundario —  6:1 sobre --surface */
-  --color-text-faint: #626b78; /* terciario  — SOLO marcas de eje */
+  --color-text: #f3f4f6; /* primario */
+  --color-text-muted: #9ca3af; /* secundario, etiquetas */
+  --color-text-faint: #4b5563; /* terciario, marcas de eje, inactivo */
 
-  /* ---- Acento (uno solo en toda la app) ---- */
-  --color-accent: #4ade80; /* accion primaria, serie principal */
-  --color-accent-press: #22c55e; /* estado pulsado */
-  --color-on-accent: #08130c; /* texto sobre acento */
+  /* ---- Acentos (tres, con uso semantico fijo - D28) ---- */
+  --color-accent: #d8ff3e; /* lima: accion primaria, objetivo cumplido, racha */
+  --color-accent-press: #b0d500; /* estado pulsado del acento lima */
+  --color-accent-2: #00f5d4; /* cian: metricas aerobicas, contadores en vivo */
+  --color-accent-3: #ff9f1c; /* ambar: en curso, avisos intermedios */
+  --color-on-accent: #0a0a0c; /* texto sobre cualquiera de los tres acentos */
 
   /* ---- Semanticos ---- */
-  --color-danger: #f87171; /* alertas de coche, molestias, desvios */
-  --color-warning: #fbbf24; /* umbrales proximos */
-  --color-info: #60a5fa; /* serie secundaria en graficos */
+  --color-danger: #ff3b5c; /* alertas, molestias, desvios, destructivo */
+  --color-warning: #ff9f1c; /* umbrales proximos - mismo tono que accent-3 */
+  --color-info: #00f5d4; /* serie secundaria en graficos - mismo tono que accent-2 */
 
-  /* ---- Tipografia (§3) ----
-     Sin webfonts: ahorran 100-200 kB y en movil no se distinguen. */
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* ---- Tipografia (D28: tres familias via Google Fonts, index.html) ----
+     Geist para texto general, Space Grotesk para titulares (aplicado a
+     h1/h2/h3 en la capa base de index.css, no hace falta repetirlo por
+     componente), JetBrains Mono para lecturas numericas: cronometros,
+     contadores de reps/peso, RPE - se aplica con la utilidad font-mono
+     donde toque durante el restyle de cada pantalla. */
+  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-display: "Space Grotesk", var(--font-sans);
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* El numero protagonista: cuenta atras, peso actual */
+  /* El numero protagonista: cuenta atras, peso actual, valor de DetailView */
   --text-display: 3rem; /* 48 */
   --text-display--line-height: 3.25rem; /* 52 */
   --text-display--font-weight: 700;
 
   /* Objetivo en modo entreno: "15 kg x 15 reps" */
-  --text-title-lg: 1.75rem; /* 28 */
-  --text-title-lg--line-height: 2.125rem; /* 34 */
+  --text-title-lg: 1.625rem; /* 26 */
+  --text-title-lg--line-height: 2rem; /* 32 */
   --text-title-lg--font-weight: 600;
 
   /* Nombre de ejercicio, cabeceras de pantalla */
-  --text-title: 1.25rem; /* 20 */
-  --text-title--line-height: 1.625rem; /* 26 */
+  --text-title: 1.125rem; /* 18 */
+  --text-title--line-height: 1.5rem; /* 24 */
   --text-title--font-weight: 600;
 
   /* Texto general. MINIMO ABSOLUTO para contenido. */
@@ -59,7 +78,8 @@
   --text-body--line-height: 1.5rem; /* 24 */
   --text-body--font-weight: 400;
 
-  /* Etiquetas de campo, "Serie 1 de 2" */
+  /* Etiquetas de campo, "Serie 1 de 2". Sin equivalente limpio en el
+     mockup (su label-md es mas pequeno); se mantiene el tamano de la v1. */
   --text-label: 0.875rem; /* 14 */
   --text-label--line-height: 1.25rem; /* 20 */
   --text-label--font-weight: 500;
@@ -69,20 +89,49 @@
   --text-caption--line-height: 1rem; /* 16 */
   --text-caption--font-weight: 400;
 
-  /* ---- Radios (§4) ---- */
-  --radius-card: 12px;
-  --radius-sheet: 16px; /* hojas inferiores */
-  --radius-button: 10px;
-  --radius-chip: 999px;
+  /* ---- Tipografia nueva de Kinetic Obsidian (D28) ----
+     Cabeceras de seccion grandes (Inicio) y lecturas numericas de
+     tarjeta (MetricTile, e1RM en vivo, HUD del modo entreno). */
+  --text-headline-lg: 2rem; /* 32 */
+  --text-headline-lg--line-height: 2.375rem; /* 38 */
+  --text-headline-lg--font-weight: 600;
 
-  /* ---- Zonas tactiles (§5, critico) ----
+  --text-metric-xl: 2.5rem; /* 40 */
+  --text-metric-xl--line-height: 2.75rem; /* 44 */
+  --text-metric-xl--font-weight: 700;
+  --text-metric-xl--letter-spacing: -0.03em;
+
+  --text-metric-md: 1.25rem; /* 20 */
+  --text-metric-md--line-height: 1.625rem; /* 26 */
+  --text-metric-md--font-weight: 600;
+  --text-metric-md--letter-spacing: -0.02em;
+
+  /* Etiquetas mayuscula con tracking: eyebrow labels, "OBJETIVO SESION" */
+  --text-label-md: 0.75rem; /* 12 */
+  --text-label-md--line-height: 1rem; /* 16 */
+  --text-label-md--font-weight: 500;
+  --text-label-md--letter-spacing: 0.05em;
+
+  --text-label-sm: 0.625rem; /* 10 */
+  --text-label-sm--line-height: 0.875rem; /* 14 */
+  --text-label-sm--font-weight: 500;
+  --text-label-sm--letter-spacing: 0.08em;
+
+  /* ---- Radios (D28: escala mas ajustada, "Soft Industrial") ---- */
+  --radius-card: 8px; /* tarjetas de metrica, botones estandar */
+  --radius-sheet: 12px; /* hojas inferiores, modales */
+  --radius-button: 8px;
+  --radius-chip: 999px; /* excepcion pildora: solo estados y toggles circulares */
+
+  /* ---- Zonas tactiles (parrafo 5, critico) ----
      Se exponen como escala de espaciado para poder escribir
-     h-touch / min-w-touch en lugar de numeros magicos. */
+     h-touch / min-w-touch en lugar de numeros magicos. El mockup no
+     las contradice (min 48x48, cronometro con objetivos grandes). */
   --spacing-touch: 48px; /* minimo de cualquier pulsable */
   --spacing-touch-primary: 56px; /* alto del boton primario */
   --spacing-touch-stepper: 64px; /* steppers del modo entreno */
   --spacing-tabbar: 56px; /* barra inferior, sin area segura */
 
-  /* La rejilla base de 4 px de §4 ya es el valor por defecto de
+  /* La rejilla base de 4 px del parrafo 4 ya es el valor por defecto de
      Tailwind (--spacing: 0.25rem), no hace falta redefinirla. */
 }

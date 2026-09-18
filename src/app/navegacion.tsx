@@ -1,29 +1,15 @@
-﻿import {
-  IconoCoche,
-  IconoComida,
-  IconoDinero,
-  IconoEntreno,
-  IconoInicio,
-} from "@/core/ui/icons";
+﻿import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import type { DestinoTab } from "@/core/ui/TabBar";
 
-/**
- * Los cinco destinos de la barra inferior, ORDENADOS POR FRECUENCIA DE USO
- * real (spec §2.7, D7). No por importancia ni por orden de construccion: la
- * barra la recorre el pulgar todos los dias.
- *
- * Perfil no esta aqui. Vive en el avatar de la cabecera porque es consulta y
- * configuracion semanal, no una accion diaria (D11).
- */
 export const DESTINOS: DestinoTab[] = [
-  { to: "/", label: "Inicio", icono: <IconoInicio /> },
-  { to: "/entreno", label: "Entreno", icono: <IconoEntreno /> },
-  { to: "/comida", label: "Comida", icono: <IconoComida /> },
-  { to: "/dinero", label: "Dinero", icono: <IconoDinero /> },
-  { to: "/coche", label: "Coche", icono: <IconoCoche /> },
+  { to: "/", label: "Inicio", icono: <MaterialIcon nombre="home" /> },
+  { to: "/entreno", label: "Entreno", icono: <MaterialIcon nombre="fitness_center" /> },
+  { to: "/comida", label: "Comida", icono: <MaterialIcon nombre="restaurant" /> },
+  { to: "/dinero", label: "Dinero", icono: <MaterialIcon nombre="account_balance_wallet" /> },
+  { to: "/coche", label: "Coche", icono: <MaterialIcon nombre="directions_car" /> },
+  { to: "/salud", label: "Salud", icono: <MaterialIcon nombre="favorite" /> },
 ];
 
-/** Titulo de la cabecera por ruta. La portada muestra el nombre de la app. */
 const TITULOS: Record<string, string> = {
   "/": "My Life",
   "/entreno": "Entreno",
@@ -31,6 +17,7 @@ const TITULOS: Record<string, string> = {
   "/comida": "Comida",
   "/dinero": "Dinero",
   "/coche": "Coche",
+  "/salud": "Salud",
   "/perfil": "Perfil",
   "/perfil/diseno": "Sistema de diseño",
 };

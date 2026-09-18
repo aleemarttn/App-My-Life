@@ -3,7 +3,7 @@
 > **Este archivo se lee al empezar cada sesión de trabajo y se actualiza al terminarla.**
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
-**Última actualización:** 18/09/2026
+**Última actualización:** 18/09/2026 (sesión de noche)
 **Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** En curso: fase 1 — entrenamiento
 **Siguiente hito:** probar en el gimnasio el circuito completo — importar rutina, entrenarla y ver que sube
 
@@ -39,15 +39,112 @@
 1. [ ] **Prototipar el modo entreno** (`spec.md` §4.7, pantalla 3 del wireframe) — **código listo, falta probarlo en el gimnasio.** Ver nota de la sesión 16/09/2026 más abajo. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es cómodo con una mano y sin mirar, se rehace.
 2. [x] **Importador de Excel (§4.6) — hecho el 17/09/2026.** Parseo y emparejamiento verificados contra `docs/plantillas/rutina-ejemplo.xlsx`; falta ejecutarlo contra la base real con sesión iniciada.
 3. [ ] **Aparcado a propósito (18/09/2026): capa LLM para leer cualquier formato de Excel.** El importador de hoy exige el formato canónico de columnas de §4.6, no un Excel "como lo mandaría un entrenador de verdad" (bloques de día, notación combinada "4x8-10", descanso en texto). Encaja exactamente con el patrón que §2.5/D2 ya describe para `parse-entry` —capa determinista primero, capa LLM solo de fallback, JSON estricto contra esquema— aplicado aquí a la Edge Function que traduciría el Excel libre al formato canónico antes de pasar por la validación y el emparejamiento ya construidos, que no cambiarían. Se decidió no construirla todavía: primero consolidar el formato fijo (hecho), luego la capa de IA. Falta elegir proveedor (Gemini/Claude/OpenAI) y el usuario tiene que poner la clave en secretos de Supabase —no se puede hacer desde aquí—.
-4. [x] **Calendario de la semana y detalle de ejercicio — hecho el 18/09/2026.** Ver nota de la sesión más abajo. Queda: vídeo en hoja inferior (hoy abre en pestaña nueva) y el exportador a Excel.
+4. [x] **Calendario de la semana y detalle de ejercicio — hecho el 18/09/2026.** Ver nota de la sesión más abajo.
 5. [x] **`core/ui/MetricChart` y el patrón `DetailView` (§2.8) — hechos el 18/09/2026.** Los reutilizan todos los módulos siguientes (peso en Perfil, categoría de gasto en Dinero, consumo en Coche).
-6. [ ] **Pendiente de probar con el dedo**, igual que el importador: el calendario y el detalle de ejercicio nunca se han visto contra datos reales de Supabase, solo compilan y pasan sus tests con datos inventados.
+6. [x] **Vídeo en hoja inferior — hecho el 18/09/2026 (tarde).** `core/ui/BottomSheet.tsx` (el componente del inventario de `design.md` §6 que faltaba) y `modules/training/VideoSheet.tsx`. Ver nota de la sesión más abajo.
+7. [x] **Exportador a Excel — hecho el 18/09/2026 (tarde).** `modules/training/exportarRutina.ts`, D26. Ver nota de la sesión más abajo.
+8. [ ] **Pendiente de probar con el dedo**, igual que el importador: el calendario, el detalle de ejercicio, la hoja de vídeo y el exportador nunca se han visto contra datos reales de Supabase con sesión iniciada — todo compila, pasa lint y pasa sus tests con datos inventados o de ejemplo. No se pudo entrar en la app durante esta sesión porque el login exige la contraseña de la cuenta y eso no se hace desde aquí.
 
 **Criterio de salida de la fase 1:** 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque.
 
 ---
 
 ## Notas para la siguiente sesión
+
+- **18/09/2026 (noche) -- Rediseno completo "Kinetic Obsidian": tokens, Inicio y todo el modulo de Entreno.**
+  Alejandro compartio mockups reales (Stitch/Claude Design) para Coche, Finanzas, Nutricion, Salud y el
+  modo entreno, con un sistema de diseno documentado (kinetic_obsidian/DESIGN.md, carpeta fuera del
+  repo en el escritorio). Se aprobo un plan explicito (EnterPlanMode) antes de tocar codigo, con 4
+  decisiones ya cerradas con Alejandro y documentadas como D28-D30 en decisiones.md.
+  - **Tokens (tokens.css) reescritos enteros**: paleta lima/cian/ambar sobre negro OLED, tres
+    tipografias via Google Fonts (Space Grotesk titulares, Geist cuerpo, JetBrains Mono metricas),
+    radios mas ajustados. index.html gana los enlaces de fuentes. Se mantienen los NOMBRES de
+    variable de la v1 (bg, surface, accent, text-title...) con valores nuevos, para no tocar el
+    className de cada componente uno a uno.
+  - **Iconos**: core/ui/MaterialIcon.tsx (Material Symbols Outlined) sustituye a icons.tsx
+    (SVG a mano), que se borro por quedar sin uso.
+  - **Componentes nuevos en core/ui**: MetricTile, ProgressBar, ListRow, SectionHeader, Pill.
+    Button gana el tratamiento "athletic trigger" (mayusculas, font-mono) en su variante primaria.
+  - D29: Salud pasa a ser la 6a pestana, sale de Perfil (reabre D7/D11). Nueva ruta salud con
+    modules/health/SaludScreen.tsx (stub, como Coche/Finanzas/Nutricion). ProfileScreen.tsx se
+    queda solo con Cuenta, sincronizacion, Datos, Objetivos y Ajustes.
+  - Inicio (Dashboard.tsx) reconstruido: antes era un esqueleto de 5 tarjetas identicas con
+    "fase X"; ahora muestra datos reales de Entreno (proximo entreno, MetricTile de la semana,
+    reutilizando calcularProximoEntreno) y accesos honestos al resto de modulos ("sin datos
+    todavia"), sin inventar numeros. Nuevo hook compartido useEntrenosEstaSemana.ts para no
+    duplicar la consulta con TrainingScreen.tsx.
+  - Modulo de Entreno restyleado entero: TrainingScreen, CalendarioSemana (marcadores a Pill),
+    ImportarRutinaScreen (gratis via tokens), DetalleEjercicioScreen/DetailView/MetricChart,
+    SustituirSheet, VideoSheet/BottomSheet, RestTimer (timer a font-mono).
+  - Modo entreno (SerieActiva.tsx), funciones nuevas de verdad, no solo estilo: HUD de sesion
+    (cronometro desde workout_sessions.started_at, Pausar solo visual sin persistir, Fin manual
+    via la nueva terminarSesion() en useSesionEntreno.ts); e1RM en vivo reutilizando e1rm() de
+    metricas.ts sin tocarla; "copiar ultima sesion" en 1-tap (nuevo hook useUltimaSerieDe.ts);
+    D30: selector etiquetado "RPE" (10-9-8-7-6-5) que escribe rir 0-5 por dentro sin migracion;
+    stepper de peso con 4 incrementos especifico de este caso; y "secuencia de series", una
+    lista de solo lectura del progreso del ejercicio que no sustituye el principio de "una
+    serie visible, un paso cada vez" de spec §4.7 -- se anoto explicitamente en la spec.
+  - 91 tests, build y lint en verde tras cada bloque grande. Precache de la PWA: 720,92 KiB.
+  - Problema de herramienta durante la sesion: la carpeta de mockups (fuera del repo) desincronizo
+    el directorio de trabajo de esta sesion y bloqueo la edicion normal de archivos durante buena
+    parte de la noche; se sorteo escribiendo por PowerShell. Un despiste de codificacion corrompio
+    brevemente DetalleEjercicioScreen.tsx (tildes rotas) y se corrigio, verificado contra el resto
+    del repo sin mas casos.
+  - Sin probar contra la app real: no se pudo entrar con el login (pide contrasena). Verificado sin
+    sesion: el boton "Entrar" carga en lima, document.fonts confirma que Geist y Space Grotesk
+    cargan de verdad. Falta con el dedo: el HUD completo, RPE, copiar ultima sesion, e1RM en vivo,
+    secuencia de series, e Inicio y Entreno enteros.
+  - Documentacion: decisiones.md (D28-D30), design.md reescrito entero, spec.md §2.7 y §4.7.
+    Pendiente menor: el parrafo de "que ves en Inicio" de spec.md §2.7 quedo con la lista vieja.
+  - CSP de vercel.json no dejaba pasar Google Fonts (style-src/font-src solo 'self'); corregido antes de desplegar, se habria roto en produccion aunque funcionaba en local.
+
+- **18/09/2026 (tarde) — Acento contrastado contra el lienzo real (D27).** Alejandro compartió capturas de
+  la pantalla de Dinero del lienzo de Claude Design. El acento ahí es un verde lima, distinto del verde menta
+  que llevaba `tokens.css` desde el 10/09 sin contrastar. Cambiado `--color-accent`/`--color-accent-press`/
+  `--color-on-accent` en `tokens.css` (único sitio donde vive) y actualizado `design.md` §2 a juego. Como es
+  el único color de acento de toda la app, el cambio se nota en cada pantalla que ya existe sin tocar ningún
+  componente. Verificado en el botón "Entrar" del login (lo único visible sin sesión iniciada).
+  **No se construyó nada del resto de la pantalla de Dinero** (StatTiles de Ingresos/Gastos/Ahorro, barras por
+  categoría, lista de movimientos): esas pantallas pertenecen al módulo de economía, que es fase 3
+  (`decisiones.md` D1) y no ha empezado. Cuando llegue esa fase, ya hereda este mismo acento. El resto de la
+  paleta (superficies, texto) sigue sin contrastar contra el lienzo, sin cambios esta sesión.
+
+- **18/09/2026 (tarde) — Vídeo en hoja inferior y exportador a Excel.** Petición de la sesión: los dos pendientes
+  menores que quedaron del calendario/detalle de ejercicio de esta mañana.
+  - **`core/ui/BottomSheet.tsx`**: el componente genérico del inventario de `design.md` §6 que nunca se había
+    construido (`SustituirSheet` lo hacía a mano para su paso del motivo, con el mismo patrón —fondo atenuado
+    con blur, panel `rounded-t-sheet` con `pb-safe`— que ahora queda reutilizable). Cierra tocando el fondo.
+  - **`modules/training/VideoSheet.tsx`** lo usa para embeber el reproductor de YouTube (spec §4.5) en vez de
+    abrir pestaña nueva. Extrae el id de vídeo de las formas habituales de enlace (`youtu.be/ID`,
+    `/watch?v=ID`, `/shorts/ID`, `/embed/ID`) y usa `youtube-nocookie.com` para no dejar cookies de
+    seguimiento hasta que se le da a reproducir. Si el enlace no es de YouTube reconocible, cae a un enlace
+    normal en vez de una hoja vacía. Sustituye el `<a target="_blank">` en `SerieActiva.tsx` (modo entreno) y
+    `DetalleEjercicioScreen.tsx` (ficha del ejercicio).
+  - **`core/xlsx.ts` gana `escribirLibro()`**, la contraparte de `leerPrimeraHoja()`: mismo envoltorio único de
+    SheetJS con `import()` dinámico, ahora también para escribir. El chunk de SheetJS sigue excluido del
+    precaché (D21); el pequeño wrapper de `core/xlsx.ts` que queda fuera de ese chunk también cae dentro del
+    patrón `**/xlsx-*.js` de `globIgnores`, comprobado en el build.
+  - **`modules/training/exportarRutina.ts`** arma el Excel del formato de exportación de spec §4.6: una hoja
+    `Semana N` por cada semana del mesociclo con una fila por serie de trabajo registrada (lo pautado y lo
+    real uno al lado del otro, más sustitución y motivo si los hubo) y una hoja `Resumen` final con series
+    totales, tonelaje, RIR medio, etiquetas acumuladas, sustituciones y cumplimiento por ejercicio. **D26**:
+    deja fuera los calentamientos y las sesiones sin terminar. Separado en funciones puras (probadas con datos
+    inventados, como el importador: 11 tests nuevos) y una función que sí toca Dexie, sin test, que es la que
+    falta probar contra la base real.
+  - **Botón "Exportar a Excel"** en la Card "Rutina" de `TrainingScreen.tsx`, junto a "Importar otra rutina".
+    Exporta la rutina activa completa (no solo la semana en curso). Si no hay ninguna sesión terminada
+    todavía, avisa en vez de descargar un archivo vacío.
+  - **91 tests**, `npm run build` y `npm run lint` en verde. Bundle: el chunk de `TrainingScreen` sube de 4,7 a
+    9,0 kB gzip (el exportador entra ahí, no en el arranque del modo entreno); `VideoSheet` es su propio chunk
+    de 0,84 kB gzip compartido entre las dos pantallas que lo usan. Precaché de la PWA: 705,90 KiB, prácticamente
+    igual que antes.
+  - **Sin probar contra la app real.** El login exige la contraseña de la cuenta de Alejandro y eso no se
+    hace desde una sesión de Claude Code (regla del propio agente, no del proyecto). Queda pendiente, la
+    próxima vez que alguien entre con el dedo: 1) pulsar el icono de vídeo en el modo entreno y en la ficha de
+    un ejercicio con `video_url` y comprobar que el vídeo se reproduce dentro de la hoja, no en pestaña nueva;
+    2) completar al menos una sesión de la rutina activa y pulsar "Exportar a Excel", comprobar que el
+    archivo descarga, que abre en Excel/Sheets sin avisos y que los números de la hoja `Resumen` cuadran con
+    lo registrado.
 
 - **18/09/2026 — Calendario de la semana y detalle de ejercicio (`DetailView`), con datos reales de principio a fin.**
   Petición de la sesión: terminar la portada de Entreno con un "calendario" de la semana y poder entrar en cada
@@ -199,3 +296,4 @@
 | 16/09/2026 | Modo entreno prototipado (spec §4.7): `Stepper` y `Chip` en `core/ui`; `SerieActiva`, `RestTimer`, `useWakeLock`, `SustituirSheet` y `useSesionEntreno` en `modules/training`; ruta `/entreno/modo` fuera de `AppLayout`. Sesión real sobre `core/db`, con dos ejercicios de prueba tomados del catálogo (`planEntrenoPrueba.ts`, temporal hasta el importador de Excel). `npm run build/lint/test` en verde, 41 tests sin cambios | **Sin probar en el gimnasio todavía** — es el siguiente paso, antes de tocar nada más del módulo |
 | 17/09/2026 | Importador de Excel completo (§4.6, D21, D22): `core/xlsx.ts`, `importarFormato.ts`, `importarEmparejar.ts`, `importarRutina.ts`, `ImportarRutinaScreen.tsx`. `proximoEntreno.ts` y D23 sustituyen los datos de prueba por la rutina real en toda la portada y el modo entreno. Excel de ejemplo en `docs/plantillas/rutina-ejemplo.xlsx`. 65 tests | Falta probar el importador con el dedo contra Supabase real (hace falta sesión iniciada) |
 | 18/09/2026 | Calendario de la semana (`CalendarioSemana.tsx`, `calcularSemanaActual`) y detalle de ejercicio: patrón `DetailView` (§2.8, D12) y `MetricChart` (Recharts) por primera vez, `metricas.ts` con las cinco métricas de §4.9, ruta `/entreno/ejercicio/:exerciseId` fuera de `AppLayout` (D24), eje Y sin cero para pesos (D25). Corregidos dos fallos de build preexistentes (`tsconfig` sin tipos de Node, tipos de Recharts). 80 tests, build y lint en verde | **Sin probar contra Supabase real.** Sigue pendiente la prueba del gimnasio del punto 1, que esta sesión no tocó |
+| 18/09/2026 (tarde) | Vídeo en hoja inferior: `core/ui/BottomSheet.tsx` (componente del inventario que faltaba) y `modules/training/VideoSheet.tsx`, sustituyendo el `target="_blank"` en modo entreno y ficha de ejercicio. Exportador a Excel: `core/xlsx.ts` gana `escribirLibro()`, `modules/training/exportarRutina.ts` arma el formato de spec §4.6 (hoja por semana + resumen, D26), botón en `TrainingScreen.tsx`. 91 tests, build y lint en verde | **Sin probar contra la app real** — el login pide contraseña y no se ha hecho desde esta sesión. Falta el gimnasio (punto 1) y probar estas dos features con el dedo |

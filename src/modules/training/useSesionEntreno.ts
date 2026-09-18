@@ -1,14 +1,9 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { actualizar, crear, db, usuarioActualId } from "@/core/db";
 import type { Json, Tables } from "@/core/supabase/types";
 import { calcularProximoEntreno } from "./proximoEntreno";
 
-/**
- * Copia de los objetivos en el momento de empezar (spec §4.3). Todo es
- * anulable porque la rutina real lo es: un cardio no tiene series ni peso,
- * y un accesorio puede venir sin RIR pautado.
- */
 export interface ObjetivoPlan {
   target_sets: number | null;
   target_reps_min: number | null;
@@ -33,7 +28,6 @@ interface DatosSesion {
   logsPorEjercicio: Record<string, Tables<"set_logs">[]>;
 }
 
-/** Un ejercicio sin series pautadas (cardio, plancha) es una sola entrada. */
 function seriesDe(planned: ObjetivoPlan): number {
   return planned.target_sets && planned.target_sets > 0 ? planned.target_sets : 1;
 }
@@ -60,27 +54,19 @@ export interface EntradaSerie {
 }
 
 export interface EstadoSesionEntreno {
-  /** Aun no se sabe si hay sesion activa: no pintar nada definitivo todavia. */
   cargando: boolean;
-  /** No hay rutina activa con dias: no hay nada que entrenar. */
   sinRutina: boolean;
+  sesion: Tables<"workout_sessions"> | undefined;
   paso: PasoActual | null;
   completada: boolean;
   seriesRegistradas: number;
+  logsDelEjercicioActual: Tables<"set_logs">[];
   confirmarSerie: (entrada: EntradaSerie) => Promise<void>;
   saltarEjercicio: () => Promise<void>;
   sustituirEjercicio: (nuevoExerciseId: string, motivo: string) => Promise<void>;
+  terminarSesion: () => Promise<void>;
 }
 
-/**
- * Orquesta la sesion del modo entreno: la crea a partir del dia que toca de
- * la rutina activa, la retoma si se abandono a medias (spec §4.7 — "el
- * estado vive en Dexie") y calcula cual es la proxima serie.
- *
- * Una sola consulta reactiva junta sesion + ejercicios + series: Dexie
- * observa las tablas que se leen dentro, asi que no hace falta encadenar
- * varios useLiveQuery ni llevar sus dependencias a mano.
- */
 export function useSesionEntreno(): EstadoSesionEntreno {
   const userId = usuarioActualId();
   const creandoRef = useRef(false);
@@ -115,8 +101,6 @@ export function useSesionEntreno(): EstadoSesionEntreno {
 
   const cargando = datos === undefined || proximo === undefined;
 
-  // Crea la sesion del dia si no hay ninguna en curso. `creandoRef` evita
-  // dispararla dos veces en el doble efecto de React en desarrollo.
   useEffect(() => {
     if (cargando || !userId || datos.sesion || creandoRef.current || !proximo) return;
 
@@ -130,9 +114,6 @@ export function useSesionEntreno(): EstadoSesionEntreno {
         notes: null,
       });
 
-      // SNAPSHOT: se copian los objetivos de hoy. Si la rutina cambia
-      // despues, el historial de esta sesion sigue siendo correcto
-      // (spec §4.3).
       for (const [posicion, item] of proximo.ejercicios.entries()) {
         const re = item.routineExercise;
         const planned: ObjetivoPlan = {
@@ -161,7 +142,6 @@ export function useSesionEntreno(): EstadoSesionEntreno {
   const paso = cargando ? null : calcularPaso(datos);
   const completada = !cargando && datos.ejercicios.length > 0 && paso === null;
 
-  // Cierra la sesion en cuanto no queda ningun ejercicio pendiente.
   useEffect(() => {
     if (!completada || cargando || !datos.sesion || datos.sesion.ended_at) return;
     void actualizar("workout_sessions", datos.sesion.id, { ended_at: new Date().toISOString() });
@@ -170,6 +150,9 @@ export function useSesionEntreno(): EstadoSesionEntreno {
   const seriesRegistradas = cargando
     ? 0
     : Object.values(datos.logsPorEjercicio).reduce((total, logs) => total + logs.length, 0);
+
+  const logsDelEjercicioActual =
+    !cargando && paso ? (datos.logsPorEjercicio[paso.sessionExercise.id] ?? []) : [];
 
   async function confirmarSerie(entrada: EntradaSerie): Promise<void> {
     if (!paso) return;
@@ -199,14 +182,22 @@ export function useSesionEntreno(): EstadoSesionEntreno {
     });
   }
 
+  async function terminarSesion(): Promise<void> {
+    if (cargando || !datos.sesion || datos.sesion.ended_at) return;
+    await actualizar("workout_sessions", datos.sesion.id, { ended_at: new Date().toISOString() });
+  }
+
   return {
     cargando,
     sinRutina: !cargando && !datos.sesion && !proximo,
+    sesion: cargando ? undefined : datos.sesion,
     paso,
     completada,
     seriesRegistradas,
+    logsDelEjercicioActual,
     confirmarSerie,
     saltarEjercicio,
     sustituirEjercicio,
+    terminarSesion,
   };
 }

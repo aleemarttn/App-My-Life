@@ -3,6 +3,12 @@ export interface HojaLeida {
   filas: Record<string, unknown>[];
 }
 
+export interface HojaEscribible {
+  /** Maximo 31 caracteres: limite del formato .xlsx, se recorta si hace falta. */
+  nombre: string;
+  filas: Record<string, unknown>[];
+}
+
 /**
  * Envoltorio unico de SheetJS. Ningun modulo importa `xlsx` directamente.
  *
@@ -26,4 +32,22 @@ export async function leerPrimeraHoja(archivo: File): Promise<HojaLeida> {
   // una fila con huecos pierde columnas y la validacion no sabria si falta
   // el dato o falta la columna entera.
   return { nombre, filas: XLSX.utils.sheet_to_json<Record<string, unknown>>(hoja, { defval: "" }) };
+}
+
+/**
+ * Contraparte de `leerPrimeraHoja`: un libro con una hoja por elemento de
+ * `hojas`, en el orden dado. Mismo motivo para el `import()` dinamico: no
+ * meter los ~400 kB de SheetJS en el arranque de la app.
+ */
+export async function escribirLibro(hojas: HojaEscribible[]): Promise<Blob> {
+  const XLSX = await import("xlsx");
+  const libro = XLSX.utils.book_new();
+
+  for (const hoja of hojas) {
+    const worksheet = XLSX.utils.json_to_sheet(hoja.filas);
+    XLSX.utils.book_append_sheet(libro, worksheet, hoja.nombre.slice(0, 31));
+  }
+
+  const datos = XLSX.write(libro, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+  return new Blob([datos], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
 }

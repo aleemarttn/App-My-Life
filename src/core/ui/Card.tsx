@@ -1,19 +1,18 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 
 interface CardProps {
-  /** Titulo opcional. Si se omite, la tarjeta es solo un contenedor. */
   titulo?: string;
-  /** Enlace o accion a la derecha del titulo. */
   accion?: ReactNode;
   className?: string;
   children: ReactNode;
 }
 
 /**
- * Contenedor base de superficie (design.md §4 y §6).
+ * Contenedor base de superficie (design.md paragrafo 4 y 6).
  *
- * Radio 12, padding 16, y elevacion POR COLOR: en tema oscuro las sombras no
- * se ven, asi que se sube de --bg a --surface y se marca el borde a 1 px.
+ * Radio 8, padding 16, y elevacion POR CAPA TONAL (D28): en tema oscuro las
+ * sombras no se ven, asi que se sube de --bg a --surface y se marca el
+ * borde a 1 px en vez de difuminar una sombra.
  */
 export function Card({ titulo, accion, className = "", children }: CardProps) {
   return (

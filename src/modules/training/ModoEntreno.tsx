@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/core/ui/Button";
 import { EmptyState } from "@/core/ui/EmptyState";
@@ -12,14 +12,8 @@ interface Descanso {
   segundos: number;
 }
 
-/** Si la rutina no pauta descanso, dos minutos es lo habitual en fuerza. */
 const DESCANSO_POR_DEFECTO = 120;
 
-/**
- * Pantalla 3 del wireframe (spec §4.7): "la pantalla que decide el
- * proyecto". Fuera de `AppShell` a proposito: secuencial y bloqueante, sin
- * barra de pestañas que distraiga ni tiente a salir a mitad de serie.
- */
 export function ModoEntreno() {
   const navigate = useNavigate();
   const sesion = useSesionEntreno();
@@ -60,12 +54,15 @@ export function ModoEntreno() {
   }
 
   const paso = sesion.paso;
-  if (!paso) return null; // inalcanzable: cubierto por los casos de arriba
+  const sesionRow = sesion.sesion;
+  if (!paso || !sesionRow) return null;
 
   return (
     <SerieActiva
       key={`${paso.sessionExercise.id}-${paso.numeroSerie}`}
       paso={paso}
+      sesion={sesionRow}
+      logsDelEjercicioActual={sesion.logsDelEjercicioActual}
       onConfirmar={(entrada) => {
         void sesion.confirmarSerie(entrada);
         setDescanso({
@@ -75,6 +72,10 @@ export function ModoEntreno() {
       }}
       onSaltar={() => void sesion.saltarEjercicio()}
       onSustituir={(nuevoId, motivo) => void sesion.sustituirEjercicio(nuevoId, motivo)}
+      onTerminarSesion={() => {
+        void sesion.terminarSesion();
+        navigate("/entreno");
+      }}
     />
   );
 }

@@ -1,20 +1,13 @@
-import { Link } from "react-router";
+﻿import { Link } from "react-router";
 import { Card } from "@/core/ui/Card";
 import { useAuth } from "../auth/useAuth";
 import { SyncPanel } from "../SyncPanel";
 import { DatosCard } from "./DatosCard";
 
-/**
- * Perfil: todo lo que ERES tu, no lo que haces (spec §5, D11).
- *
- * La estructura definitiva es Cuerpo · Salud · Objetivos · Ajustes · Datos.
- * En la fase 0 solo existe Datos; las demas quedan listadas con su fase para
- * que la jerarquia se vea desde el principio y no haya que rehacerla.
- */
-
+// Perfil: cuenta, sincronizacion y ajustes (spec §5, D11/D29). Cuerpo y
+// Salud salieron a su propia pestaña (D29); aqui solo queda lo que es
+// cuenta o configuracion, no una accion diaria.
 const SECCIONES = [
-  { titulo: "Cuerpo", detalle: "Peso, medidas, fotos y comparador", fase: "fase 1.5" },
-  { titulo: "Salud", detalle: "Datos de Salud de iOS vía Atajos", fase: "fase 3" },
   { titulo: "Objetivos", detalle: "Peso objetivo, macros y RIR de referencia", fase: "fase 1.5" },
   { titulo: "Ajustes", detalle: "Cronómetro, unidades, tema y Telegram", fase: "fase 1" },
 ] as const;
