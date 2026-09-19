@@ -57,6 +57,20 @@
 
 ## Notas para la siguiente sesión
 
+- **19/09/2026 (tarde) — `docs/plantillas/rutina-con-pesos.xlsx`, y tres ejercicios mal emparejados en la base.**
+  Alejandro pidió un Excel con pesos inventados para ver en pantalla cómo queda un objetivo CON peso
+  pautado (su rutina real no trae ninguno). Se generó a partir de la propia base: sus días, sus
+  ejercicios, sus reps/RIR/descansos/notas, semanas 1 y 2, y una columna `peso` inventada en 22 de las
+  30 filas. Validado por `importarConPesos.test.ts` contra el validador real antes de dárselo.
+  - **Hallazgo al generarlo:** el validador rechazaba tres filas ("un ejercicio de cardio necesita
+    duracion_seg o distancia_m"). Son ejercicios **mal emparejados en la importación original**: hay
+    una fila de dominadas (4×6-8, "lastre si te salen más de 8 limpias") colgando de **Cinta de
+    correr**, una de cardio de 25 min en zona 2 colgando de **Extensión de tríceps polea**, y un
+    accesorio de pierna colgando de **Elíptica**. La base tiene `exercises.kind` incoherente con lo
+    que pauta la fila. **Pendiente de decidir con Alejandro** si se corrigen los emparejamientos.
+  - **Las semanas 3 y 4 de la rutina están casi vacías** (2 y 6 filas frente a las 15 de las semanas
+    1 y 2). No se ha tocado: puede ser así en el Excel original del entrenador.
+
 - **19/09/2026 (tarde) — Primera prueba real en el móvil: cuatro fallos y un destrozo de datos (D34-D36).**
   Alejandro probó lo desplegado por la mañana y encontró: (1) no había forma de volver al modo entreno
   tras salir con la flecha; (2) los días del calendario no se podían abrir; (3) no se veía ni el peso,
