@@ -3,6 +3,7 @@ import { Pill } from "@/core/ui/Pill";
 import type { Tables } from "@/core/supabase/types";
 import { objetivoSesion } from "./formato";
 import type { ObjetivoPautado } from "./formato";
+import { NotaEntrenador } from "./NotaEntrenador";
 
 interface CabeceraEjercicioProps {
   ejercicio: Tables<"exercises"> | undefined;
@@ -10,6 +11,8 @@ interface CabeceraEjercicioProps {
   indice: number;
   total: number;
   objetivo: ObjetivoPautado;
+  /** `routine_exercises.notes`: lo que escribio el entrenador para hoy. */
+  notaEntrenador: string | null;
   /** e1RM de la serie que se esta escribiendo ahora, o null si no aplica. */
   e1rmEnVivo: number | null;
   onVerHistorial: () => void;
@@ -29,6 +32,7 @@ export function CabeceraEjercicio({
   indice,
   total,
   objetivo,
+  notaEntrenador,
   e1rmEnVivo,
   onVerHistorial,
   onVerVideo,
@@ -68,20 +72,23 @@ export function CabeceraEjercicio({
 
       <h1 className="text-title-lg mb-3">{ejercicio?.name ?? "Cargando..."}</h1>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-card bg-surface-2 p-3">
-          <p className="text-label-md mb-0.5 uppercase tracking-wide text-text-muted">Objetivo sesión</p>
-          <p className="text-body font-semibold tabular-nums text-text">{objetivoSesion(objetivo)}</p>
-        </div>
-        <div className="rounded-card bg-surface-2 p-3">
-          <p className="text-label-md mb-0.5 uppercase tracking-wide text-text-muted">e1RM estimado</p>
-          <p className="font-mono text-metric-md tabular-nums text-accent-2">
-            {e1rmEnVivo != null ? `${e1rmEnVivo.toFixed(1)} kg` : "—"}
-            {e1rmEnVivo != null && (
-              <span className="text-caption ml-1 font-sans text-text-muted">(Epley)</span>
-            )}
-          </p>
-        </div>
+      {/* El objetivo ocupa el ancho entero: es la linea que se mira entre
+          serie y serie, y en dos columnas se partia en tres renglones. */}
+      <div className="mb-2 rounded-card bg-surface-2 p-3">
+        <p className="text-label-md mb-0.5 uppercase tracking-wide text-text-muted">Objetivo de hoy</p>
+        <p className="text-title tabular-nums text-text">{objetivoSesion(objetivo)}</p>
+      </div>
+
+      {notaEntrenador && <NotaEntrenador nota={notaEntrenador} className="mb-2" />}
+
+      <div className="rounded-card bg-surface-2 p-3">
+        <p className="text-label-md mb-0.5 uppercase tracking-wide text-text-muted">e1RM estimado</p>
+        <p className="font-mono text-metric-md tabular-nums text-accent-2">
+          {e1rmEnVivo != null ? `${e1rmEnVivo.toFixed(1)} kg` : "—"}
+          {e1rmEnVivo != null && (
+            <span className="text-caption ml-1 font-sans text-text-muted">(Epley)</span>
+          )}
+        </p>
       </div>
     </section>
   );

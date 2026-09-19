@@ -32,7 +32,7 @@ describe("textoReps", () => {
 });
 
 describe("objetivoSesion", () => {
-  it("arma la linea del mockup: series, rango y RPE", () => {
+  it("arma la linea de la pauta: series, rango y RIR", () => {
     const objetivo: ObjetivoPautado = {
       ...VACIO,
       target_sets: 4,
@@ -40,19 +40,19 @@ describe("objetivoSesion", () => {
       target_reps_max: 8,
       target_rir: 2,
     };
-    expect(objetivoSesion(objetivo)).toBe("4 × 6-8 @ RPE 8");
+    expect(objetivoSesion(objetivo)).toBe("4 × 6-8 · RIR 2");
   });
 
-  it("ensena el RPE como la cara visible del RIR pautado (D30)", () => {
+  it("ensena el RIR tal cual lo pauto el entrenador, sin traducir a RPE (D34)", () => {
     expect(objetivoSesion({ ...VACIO, target_sets: 3, target_reps_max: 10, target_rir: 0 })).toBe(
-      "3 × 10 @ RPE 10",
+      "3 × 10 · RIR 0",
     );
     expect(objetivoSesion({ ...VACIO, target_sets: 3, target_reps_max: 10, target_rir: 5 })).toBe(
-      "3 × 10 @ RPE 5",
+      "3 × 10 · RIR 5",
     );
   });
 
-  it("no inventa RPE cuando el Excel no trae la columna rir", () => {
+  it("no inventa RIR cuando el Excel no trae la columna", () => {
     expect(objetivoSesion({ ...VACIO, target_sets: 3, target_reps_max: 10 })).toBe("3 × 10");
   });
 

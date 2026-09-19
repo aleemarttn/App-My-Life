@@ -52,10 +52,20 @@ export function SerieActiva({
     [paso.sessionExercise.exercise_id],
   );
 
+  // La nota del entrenador vive en la rutina, no en el snapshot de la
+  // sesion: se lee de `routine_exercises`, que es donde la dejo el Excel.
+  const routineExercise = useLiveQuery(async () => {
+    const id = paso.sessionExercise.routine_exercise_id;
+    return id ? await db.routine_exercises.get(id) : undefined;
+  }, [paso.sessionExercise.routine_exercise_id]);
+
   const { planned } = paso;
   const [reps, setReps] = useState(planned.target_reps_max ?? planned.target_reps_min ?? 10);
-  const [peso, setPeso] = useState(planned.target_weight ?? 0);
-  const [rir, setRir] = useState<number | null>(null);
+  // Null mientras no se toque el stepper: el peso de partida se deriva
+  // abajo, porque la ultima serie llega de Dexie despues del primer render.
+  const [pesoElegido, setPesoElegido] = useState<number | null>(planned.target_weight);
+  const [rir, setRir] = useState<number | null>(planned.target_rir);
+  const [rpe, setRpe] = useState<number | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [notaAbierta, setNotaAbierta] = useState(false);
   const [nota, setNota] = useState("");
@@ -64,13 +74,19 @@ export function SerieActiva({
 
   const ultimaSerie = useUltimaSerieDe(paso.sessionExercise.exercise_id, sesion.id);
   const esFuerza = !ejercicio || ejercicio.kind === "strength";
+
+  // Cuando el Excel no pauta peso -- que es el caso de la rutina real: 0 de
+  // sus 39 filas lo trae -- el punto de partida util es lo que se movio la
+  // ultima vez, no un 0,0 kg que hay que subir a golpe de boton.
+  const peso = pesoElegido ?? ultimaSerie?.peso ?? 0;
   const e1rmEnVivo = esFuerza && peso > 0 && reps > 0 ? e1rm(peso, reps) : null;
 
   const resumenRegistro = [
     `Serie ${paso.numeroSerie}`,
     esFuerza ? `${peso} kg` : null,
     `${reps} reps`,
-    rir != null ? `RPE ${10 - rir}` : null,
+    rir != null ? `RIR ${rir}` : null,
+    rpe != null ? `RPE ${rpe.toFixed(1)}` : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -87,6 +103,7 @@ export function SerieActiva({
           indice={paso.indiceEjercicio}
           total={paso.totalEjercicios}
           objetivo={planned}
+          notaEntrenador={routineExercise?.notes ?? null}
           e1rmEnVivo={e1rmEnVivo}
           onVerHistorial={() => navigate(`/entreno/ejercicio/${paso.sessionExercise.exercise_id}`)}
           onVerVideo={() => setMostrandoVideo(true)}
@@ -97,7 +114,7 @@ export function SerieActiva({
             peso={ultimaSerie.peso}
             reps={ultimaSerie.reps}
             onCopiar={() => {
-              if (ultimaSerie.peso != null) setPeso(ultimaSerie.peso);
+              if (ultimaSerie.peso != null) setPesoElegido(ultimaSerie.peso);
               if (ultimaSerie.reps != null) setReps(ultimaSerie.reps);
             }}
           />
@@ -107,12 +124,15 @@ export function SerieActiva({
           numeroSerie={paso.numeroSerie}
           totalSeries={paso.totalSeries}
           objetivo={planned}
+          pesoReferencia={ultimaSerie?.peso ?? null}
           peso={peso}
-          onPeso={setPeso}
+          onPeso={setPesoElegido}
           reps={reps}
           onReps={setReps}
           rir={rir}
           onRir={setRir}
+          rpe={rpe}
+          onRpe={setRpe}
           descansoSegundos={paso.descansoSegundos}
           autoDescanso={autoDescanso}
           onAutoDescanso={onAutoDescanso}
@@ -154,10 +174,10 @@ export function SerieActiva({
 
       {/* El registro vive en la zona del pulgar (design.md §1 y §5), no en
           medio de la pagina: es lo unico que se pulsa de pie y sudando. */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
+      <div className="pb-accion-safe fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur">
         <Button
           className="h-auto min-h-touch-primary py-2 leading-tight"
-          onClick={() => onConfirmar({ reps, peso, rir, tags, nota })}
+          onClick={() => onConfirmar({ reps, peso, rir, rpe, tags, nota })}
         >
           Registrar {resumenRegistro}
         </Button>

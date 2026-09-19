@@ -64,7 +64,10 @@ function calcularPaso(datos: DatosSesion): PasoActual | null {
 export interface EntradaSerie {
   reps: number | null;
   peso: number | null;
+  /** Repeticiones que quedaron en reserva. Es lo que pauta el entrenador. */
   rir: number | null;
+  /** Esfuerzo percibido (Borg CR-10). Opcional y distinto del RIR (D34). */
+  rpe: number | null;
   tags: string[];
   nota: string;
 }
@@ -179,6 +182,7 @@ export function useSesionEntreno(): EstadoSesionEntreno {
       weight: entrada.peso,
       reps: entrada.reps,
       rir: entrada.rir,
+      rpe: entrada.rpe,
       tags: entrada.tags,
       note: entrada.nota.trim() === "" ? null : entrada.nota.trim(),
     });

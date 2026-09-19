@@ -421,6 +421,7 @@ export type Database = {
           note: string | null
           reps: number | null
           rir: number | null
+          rpe: number | null
           session_exercise_id: string
           set_index: number
           tags: string[]
@@ -438,6 +439,7 @@ export type Database = {
           note?: string | null
           reps?: number | null
           rir?: number | null
+          rpe?: number | null
           session_exercise_id: string
           set_index: number
           tags?: string[]
@@ -455,6 +457,7 @@ export type Database = {
           note?: string | null
           reps?: number | null
           rir?: number | null
+          rpe?: number | null
           session_exercise_id?: string
           set_index?: number
           tags?: string[]
@@ -531,6 +534,7 @@ export type Database = {
       v_session_exercise_summary: {
         Row: {
           avg_rir: number | null
+          avg_rpe: number | null
           e1rm: number | null
           exercise_id: string | null
           session_exercise_id: string | null

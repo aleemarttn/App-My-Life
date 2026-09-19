@@ -51,4 +51,17 @@
   .h-tabbar-safe {
     height: calc(var(--spacing-tabbar) + env(safe-area-inset-bottom));
   }
+
+  /* Barra de accion fija dentro de una pestaña: deja libre la barra de
+     navegacion y el area segura del dispositivo, para que el boton no
+     acabe debajo de las pestañas (D36). */
+  .pb-tabbar-safe {
+    padding-bottom: calc(var(--spacing-tabbar) + env(safe-area-inset-bottom) + 0.75rem);
+  }
+
+  /* Barra de accion fija en una pantalla SIN barra de pestañas (el modo
+     entreno), donde solo hay que respetar el area segura. */
+  .pb-accion-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem);
+  }
 }

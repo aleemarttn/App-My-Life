@@ -489,7 +489,7 @@ Mesociclo_3_octubre.xlsx
                    etiquetas acumuladas, sustituciones y cumplimiento
 ```
 
-Cada fila de una hoja de semana lleva: `fecha`, `dia`, `ejercicio`, `sustituido_de`, `motivo_sustitucion`, `serie`, `peso_pautado`, `peso_real`, `reps_pautadas`, `reps_reales`, `rir`, `etiquetas`, `nota`.
+Cada fila de una hoja de semana lleva: `fecha`, `dia`, `ejercicio`, `sustituido_de`, `motivo_sustitucion`, `serie`, `peso_pautado`, `peso_real`, `reps_pautadas`, `reps_reales`, `rir`, `rpe` (D34), `etiquetas`, `nota`.
 
 **El detalle que hace útil la exportación:** cada fila lleva lo pautado *y* lo hecho, uno al lado del otro. Tu entrenador (o tu IA) ve la desviación de un vistazo, sin cruzar dos archivos. Eso es posible precisamente gracias al snapshot de `session_exercises` (§4.3).
 
@@ -534,7 +534,10 @@ La pantalla que decide el proyecto. Se usa de pie, sudando, con una mano.
 - La sesión se puede abandonar y retomar: el estado vive en Dexie.
 - **Anadido 18/09/2026 (D28/D30), sobre el mismo principio, no en su lugar:** HUD de sesión (cronómetro, Pausar sin persistir, Fin manual), e1RM en vivo, copiar última sesión en 1-tap, selector etiquetado RPE que sigue escribiendo RIR por dentro, y una lista de solo lectura con el estado de cada serie del ejercicio.
 - **Anadido 19/09/2026 (D31):** el HUD lleva una flecha de volver que sale a la portada de Entreno **sin terminar la sesión**. Escribir `ended_at` sigue siendo exclusivo de `Fin`.
-- **Anadido 19/09/2026 (D32):** la pantalla no calcula métricas. El objetivo de la serie, el rango de reps, el RPE pautado, el peso de referencia y el descanso salen del Excel importado; lo demás son recuentos ("serie 3 de 4", "ejercicio 3 de 5"). El e1RM en vivo de D28 es la única excepción y se mantiene.
+- **Anadido 19/09/2026 (D32):** la pantalla no calcula métricas. El objetivo de la serie, el rango de reps, el RIR pautado y el descanso salen del Excel importado; lo demás son recuentos ("serie 3 de 4", "ejercicio 3 de 5"). El e1RM en vivo de D28 es la única excepción y se mantiene.
+- **Anadido 19/09/2026 (D34):** se registran **RIR y RPE por separado** (`set_logs.rir` y `set_logs.rpe`). El RIR es la pauta y se marca de un toque con el valor del Excel resaltado; el RPE es opcional. **Anula D30.**
+- **Anadido 19/09/2026 (D34):** cuando el Excel no pauta peso —el caso de la rutina real— el stepper arranca con **el peso de la última vez que se hizo ese ejercicio**, no en 0 kg, y la etiqueta dice de dónde sale ("Última vez: 20 kg" / "Sin pautar · elige tú").
+- **Anadido 19/09/2026:** la **nota del entrenador** de `routine_exercises.notes` se ve en la cabecera del ejercicio. Ahí viven "Superset con A1", "AMRAP hasta el fallo técnico" y "si sube RIR a 4+ subimos 2,5 kg": sin ella la pauta de la pantalla está incompleta.
 
 **Las tres pantallas del módulo (D31).** Registrar sigue siendo exclusivo del modo entreno; las otras dos son para mirar:
 
@@ -542,7 +545,8 @@ La pantalla que decide el proyecto. Se usa de pie, sudando, con una mano.
 |---|---|---|
 | Portada sin sesión | No hay entreno empezado | Ver el día entero antes de meterse: ejercicios, pauta de cada uno, descanso y grupos musculares |
 | Modo entreno | Dentro de la sesión | Registrar series. Una visible, un paso cada vez |
-| Portada con sesión en curso | Se salió del modo entreno con la flecha | Cronómetro, secuencia de series del ejercicio actual, recorrido del día y volver a entrar |
+| Portada con sesión en curso | Se salió del modo entreno con la flecha | Cronómetro, secuencia de series del ejercicio actual, recorrido del día, calendario y volver a entrar |
+| Detalle de día (D35) | Se pulsa cualquier día del calendario | Solo lectura: lo pautado con las notas del entrenador y lo registrado en cada sesión de ese día |
 
 ### 4.8 Progresión
 

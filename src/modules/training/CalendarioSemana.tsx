@@ -1,5 +1,6 @@
 ﻿import { useNavigate } from "react-router";
 import { Card } from "@/core/ui/Card";
+import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import { Pill } from "@/core/ui/Pill";
 import type { DiaProgramado, EstadoDia } from "./proximoEntreno";
 import { objetivoCorto } from "./formato";
@@ -34,11 +35,18 @@ export function CalendarioSemana({ weekNumber, dias }: CalendarioSemanaProps) {
       <ul className="-mx-4 divide-y divide-border">
         {dias.map(({ dia, ejercicios, estado }) => (
           <li key={dia.id} className="px-4 py-3">
-            <div className="mb-2 flex items-center gap-3">
+            {/* El dia entero se abre (D35): hasta ahora solo se podia entrar
+                a un ejercicio suelto, no a ver el dia completo. */}
+            <button
+              type="button"
+              onClick={() => navigate(`/entreno/dia/${dia.id}`)}
+              className="mb-2 flex w-full items-center gap-3 text-left active:opacity-70"
+            >
               <Marcador estado={estado} />
               <p className="text-body min-w-0 flex-1 truncate">{dia.label}</p>
               <Pill color={COLOR_ESTADO[estado]}>{ETIQUETA_ESTADO[estado]}</Pill>
-            </div>
+              <MaterialIcon nombre="chevron_right" tamano={18} className="shrink-0 text-text-faint" />
+            </button>
 
             {ejercicios.length > 0 && (
               <ul className="space-y-1 pl-9">

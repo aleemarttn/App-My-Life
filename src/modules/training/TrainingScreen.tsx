@@ -74,6 +74,7 @@ export function TrainingScreen() {
     return (
       <SesionEnCurso
         datos={enCurso}
+        semana={semana ?? null}
         onTerminar={() =>
           void actualizar("workout_sessions", enCurso.sesion.id, { ended_at: new Date().toISOString() })
         }

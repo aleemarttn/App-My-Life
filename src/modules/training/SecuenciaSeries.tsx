@@ -69,8 +69,9 @@ export function SecuenciaSeries({ totalSeries, objetivo, logs, numeroActual }: S
                 <>
                   <p className="text-body truncate tabular-nums text-text">{textoRegistrada(log)}</p>
                   <p className="text-caption truncate text-text-muted">
-                    {log.rir != null ? `RPE ${10 - log.rir}` : "Sin RPE"}
-                    {log.is_warmup ? " · Calentamiento" : " · Serie efectiva"}
+                    {log.rir != null ? `RIR ${log.rir}` : "Sin RIR"}
+                    {log.rpe != null ? ` · RPE ${log.rpe}` : ""}
+                    {log.is_warmup ? " · Calentamiento" : ""}
                   </p>
                 </>
               ) : (

@@ -10,6 +10,12 @@ export const router = createBrowserRouter([
     }),
   },
   {
+    path: "/entreno/dia/:diaId",
+    lazy: async () => ({
+      Component: (await import("@/modules/training/DetalleDiaScreen")).DetalleDiaScreen,
+    }),
+  },
+  {
     path: "/entreno/ejercicio/:exerciseId",
     lazy: async () => ({
       Component: (await import("@/modules/training/DetalleEjercicioScreen")).DetalleEjercicioScreen,

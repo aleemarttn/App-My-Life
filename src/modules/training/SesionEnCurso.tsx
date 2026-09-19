@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/core/ui/Button";
 import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import { Pill } from "@/core/ui/Pill";
 import { ProgressBar } from "@/core/ui/ProgressBar";
+import { CalendarioSemana } from "./CalendarioSemana";
 import { objetivoSesion, reloj } from "./formato";
+import type { SemanaEntreno } from "./proximoEntreno";
 import { SecuenciaSeries } from "./SecuenciaSeries";
 import { useCronometro } from "./useCronometro";
 import type { EjercicioEnCurso, SesionEnCurso as DatosSesionEnCurso } from "./useSesionEnCurso";
@@ -53,25 +56,28 @@ function FilaEjercicio({ ejercicio, indice }: { ejercicio: EjercicioEnCurso; ind
 
 interface SesionEnCursoProps {
   datos: DatosSesionEnCurso;
+  semana: SemanaEntreno | null;
   onTerminar: () => void;
 }
 
 /**
  * La portada de Entreno cuando hay una sesion abierta (D31).
  *
- * Es la tercera pantalla del modulo: la que se ve al salir del modo entreno
- * con la flecha sin haberlo terminado. Aqui se MIRA como va la sesion -- la
- * secuencia de series del ejercicio en curso y el recorrido del dia
- * entero -- y se vuelve a entrar. No se registra nada: registrar es
- * exclusivo del modo entreno (spec §4.7).
+ * Aqui se MIRA como va la sesion y se vuelve a entrar; registrar sigue
+ * siendo exclusivo del modo entreno (spec §4.7). "Continuar" aparece dos
+ * veces a proposito -- arriba del todo y fijo abajo -- porque quedarse sin
+ * forma de volver a entrar fue justo el fallo de la primera version (D36).
  */
-export function SesionEnCurso({ datos, onTerminar }: SesionEnCursoProps) {
+export function SesionEnCurso({ datos, semana, onTerminar }: SesionEnCursoProps) {
   const navigate = useNavigate();
   const segundos = useCronometro(datos.sesion.started_at);
+  const [confirmandoFin, setConfirmandoFin] = useState(false);
   const actual = datos.indiceActual >= 0 ? datos.ejercicios[datos.indiceActual] : undefined;
 
+  const volverAlEntreno = () => navigate("/entreno/modo");
+
   return (
-    <div className="space-y-3 pb-24">
+    <div className="space-y-3 pb-28">
       <section className="rounded-card border border-accent/30 bg-surface p-4">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -101,6 +107,10 @@ export function SesionEnCurso({ datos, onTerminar }: SesionEnCursoProps) {
             datos.seriesPlanificadas > 0 ? (datos.seriesRegistradas / datos.seriesPlanificadas) * 100 : 0
           }
         />
+
+        <Button className="mt-4" onClick={volverAlEntreno}>
+          Continuar entrenamiento
+        </Button>
       </section>
 
       {actual && (
@@ -126,20 +136,41 @@ export function SesionEnCurso({ datos, onTerminar }: SesionEnCursoProps) {
       )}
 
       <section className="rounded-card border border-border bg-surface p-4">
-        <h2 className="text-label-md mb-1 uppercase tracking-wide text-text-muted">Recorrido del día</h2>
+        <div className="mb-1 flex items-baseline justify-between gap-2">
+          <h2 className="text-label-md uppercase tracking-wide text-text-muted">Recorrido del día</h2>
+          {datos.sesion.routine_day_id && (
+            <button
+              type="button"
+              onClick={() => navigate(`/entreno/dia/${datos.sesion.routine_day_id}`)}
+              className="text-label-md text-accent active:opacity-70"
+            >
+              ver el día
+            </button>
+          )}
+        </div>
         <ul className="divide-y divide-border">
           {datos.ejercicios.map((ejercicio, indice) => (
             <FilaEjercicio key={ejercicio.sessionExercise.id} ejercicio={ejercicio} indice={indice + 1} />
           ))}
         </ul>
-        <Button variant="ghost" className="mt-2 w-full" onClick={onTerminar}>
-          Terminar entreno
-        </Button>
       </section>
 
+      {semana && <CalendarioSemana weekNumber={semana.weekNumber} dias={semana.dias} />}
+
+      {/* Terminar pide confirmacion: a un solo toque se cargo siete dias de
+          mesociclo por error el 19/09 (D36). */}
+      <Button
+        variant={confirmandoFin ? "danger" : "ghost"}
+        className="w-full"
+        onClick={() => (confirmandoFin ? onTerminar() : setConfirmandoFin(true))}
+        onBlur={() => setConfirmandoFin(false)}
+      >
+        {confirmandoFin ? "Sí, dar el entreno por terminado" : "Terminar entreno"}
+      </Button>
+
       {/* Zona del pulgar (design.md §1), por encima de la barra de pestañas. */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur pb-[calc(var(--spacing-tabbar)+env(safe-area-inset-bottom)+0.75rem)]">
-        <Button onClick={() => navigate("/entreno/modo")}>Continuar entrenamiento</Button>
+      <div className="pb-tabbar-safe fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur">
+        <Button onClick={volverAlEntreno}>Continuar entrenamiento</Button>
       </div>
     </div>
   );

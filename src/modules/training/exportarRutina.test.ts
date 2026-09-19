@@ -35,8 +35,8 @@ function sesion(extra: Partial<SesionParaExportar> = {}): SesionParaExportar {
         motivoSustitucion: null,
         planned: planned(),
         sets: [
-          { setIndex: 1, peso: 80, reps: 10, rir: 2, tags: [], nota: null },
-          { setIndex: 2, peso: 82.5, reps: 8, rir: 1, tags: ["al_fallo"], nota: "duro" },
+          { setIndex: 1, peso: 80, reps: 10, rir: 2, rpe: null, tags: [], nota: null },
+          { setIndex: 2, peso: 82.5, reps: 8, rir: 1, rpe: 9.5, tags: ["al_fallo"], nota: "duro" },
         ],
       },
     ],
@@ -63,6 +63,17 @@ describe("construirFilasSemana", () => {
     });
     expect(filas[1]?.etiquetas).toBe("al_fallo");
     expect(filas[1]?.nota).toBe("duro");
+  });
+
+  it("exporta el RPE en su propia columna, al lado del RIR (D34)", () => {
+    const filas = construirFilasSemana([sesion()]);
+    // La serie 1 se registro sin marcar RPE: la celda va vacia, no a cero.
+    expect(filas[0]?.rir).toBe(2);
+    expect(filas[0]?.rpe).toBe("");
+    // La serie 2 llevaba los dos, y no son el uno el reflejo del otro:
+    // RIR 1 equivaldria a RPE 9, pero Alejandro marco 9,5.
+    expect(filas[1]?.rir).toBe(1);
+    expect(filas[1]?.rpe).toBe(9.5);
   });
 
   it("un solo valor de reps pautadas cuando min y max coinciden", () => {
@@ -121,7 +132,7 @@ describe("calcularResumen", () => {
           sustituidoDeNombre: null,
           motivoSustitucion: null,
           planned: planned({ target_sets: null, target_reps_min: null, target_reps_max: null, target_duration_seconds: 1800 }),
-          sets: [{ setIndex: 1, peso: null, reps: null, rir: null, tags: [], nota: null }],
+          sets: [{ setIndex: 1, peso: null, reps: null, rir: null, rpe: null, tags: [], nota: null }],
         },
       ],
     });

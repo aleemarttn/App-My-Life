@@ -37,7 +37,11 @@ export function ResumenDia({ proximo }: ResumenDiaProps) {
 
   return (
     <section className="rounded-card border border-border bg-surface p-4">
-      <div className="mb-3 flex items-start justify-between gap-3">
+      <button
+        type="button"
+        onClick={() => navigate(`/entreno/dia/${proximo.dia.id}`)}
+        className="mb-3 flex w-full items-start justify-between gap-3 text-left active:opacity-70"
+      >
         <div className="min-w-0">
           <p className="text-label-md uppercase tracking-wide text-text-muted">
             {proximo.terminado ? "Mesociclo terminado" : "Te toca"}
@@ -48,7 +52,8 @@ export function ResumenDia({ proximo }: ResumenDiaProps) {
             {proximo.total}
           </p>
         </div>
-      </div>
+        <MaterialIcon nombre="chevron_right" tamano={20} className="mt-1 shrink-0 text-text-faint" />
+      </button>
 
       <div className="mb-3 flex flex-wrap items-center gap-1.5">
         <Pill color="accent">{`${proximo.ejercicios.length} ejercicios`}</Pill>

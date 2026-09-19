@@ -19,6 +19,8 @@ export interface SetParaExportar {
   peso: number | null;
   reps: number | null;
   rir: number | null;
+  /** Esfuerzo percibido, distinto del RIR (D34). Puede no haberse marcado. */
+  rpe: number | null;
   tags: string[];
   nota: string | null;
 }
@@ -52,6 +54,7 @@ export interface FilaSemana {
   reps_pautadas: number | string;
   reps_reales: number | string;
   rir: number | string;
+  rpe: number | string;
   etiquetas: string;
   nota: string;
 }
@@ -92,6 +95,7 @@ export function construirFilasSemana(sesiones: SesionParaExportar[]): FilaSemana
           reps_pautadas: repsPautadas(ej.planned),
           reps_reales: set.reps ?? "",
           rir: set.rir ?? "",
+          rpe: set.rpe ?? "",
           etiquetas: set.tags.join(", "),
           nota: set.nota ?? "",
         });
@@ -239,6 +243,7 @@ async function sesionesDeRutina(routineId: string): Promise<SesionParaExportar[]
           peso: l.weight,
           reps: l.reps,
           rir: l.rir,
+          rpe: l.rpe,
           tags: l.tags,
           nota: l.note,
         })),

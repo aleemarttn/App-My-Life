@@ -57,6 +57,33 @@
 
 ## Notas para la siguiente sesión
 
+- **19/09/2026 (tarde) — Primera prueba real en el móvil: cuatro fallos y un destrozo de datos (D34-D36).**
+  Alejandro probó lo desplegado por la mañana y encontró: (1) no había forma de volver al modo entreno
+  tras salir con la flecha; (2) los días del calendario no se podían abrir; (3) no se veía ni el peso,
+  ni el RIR, ni las notas del entrenador; (4) no se podía mirar un entreno pasado.
+  - **El destrozo:** como lo único pulsable era "Terminar entreno", se crearon y cerraron **7 sesiones
+    en segundos** (una de 5 s), y `calcularProximoEntreno` avanza un día por sesión terminada → el
+    mesociclo se comió 7 días sin entrenar. **Borradas con borrado lógico** el mismo día desde el MCP
+    de Supabase; vuelve a estar en el lunes de la semana 1. D36 lo arregla: confirmación de dos toques
+    para terminar y "Continuar entrenamiento" duplicado (en la tarjeta y en barra fija `z-30`).
+  - **Lo que enseñaron los datos reales:** la rutina importada tiene **0 de 39 filas con peso**
+    (el entrenador pauta con reps + RIR + notas) y **30 de 39 con notas** que llevaban media pauta
+    dentro ("Superset con A1", "AMRAP hasta el fallo técnico", "si sube RIR a 4+ subimos 2,5 kg").
+    La app no enseñaba ninguna de las dos cosas y el stepper arrancaba en 0,0 kg — hay dos series
+    registradas con peso 0 por eso.
+  - **D34 — RIR y RPE son dos datos distintos.** Migración `20260919120000_set_logs_rpe.sql`: columna
+    `rpe numeric(3,1)` en `set_logs` y `avg_rpe` en la vista de servidor. Aplicada en producción por
+    el MCP. Dos controles separados: RIR de un toque con el pautado marcado, RPE opcional en pasos
+    de 0,5. Anula D30. El exportador gana la columna `rpe` (spec §4.6).
+  - **Peso de partida:** si el Excel no pauta peso, el stepper arranca con el de la última vez que se
+    hizo ese ejercicio y la etiqueta dice de dónde sale. Se deriva en el render, sin efecto.
+  - **D35 — `DetalleDiaScreen`** (`/entreno/dia/:diaId`): lo pautado con notas + lo registrado serie a
+    serie, con sustituciones. Se entra desde el calendario, desde la cabecera del día y desde la sesión
+    en curso. La portada en curso vuelve a enseñar el calendario, que D31 había tapado.
+  - `NotaEntrenador.tsx`, `SesionRegistrada.tsx`, `useDetalleDia.ts` nuevos. Utilidades
+    `.pb-tabbar-safe` y `.pb-accion-safe` en `index.css`. 105 tests, lint y build en verde.
+  - **Sigue sin verificarse con el dedo**: esta tanda también se ha desplegado sin poder abrirla.
+
 - **19/09/2026 — Entreno pasa a tres pantallas y el modo entreno sube al nivel del mockup (D31-D33).**
   Alejandro compartió el mockup de Stitch de la pantalla de entreno iniciado y pidió llevar sus elementos
   a la app: secuencia de series, objetivo de la sesión, y una flecha para salir del modo entreno sin

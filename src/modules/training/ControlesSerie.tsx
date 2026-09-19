@@ -1,12 +1,12 @@
 import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import { Pill } from "@/core/ui/Pill";
-import { reloj, textoReps } from "./formato";
+import { reloj, rpeEquivalente, textoReps } from "./formato";
 import type { ObjetivoPautado } from "./formato";
 
-/** D30: el selector ensena RPE, la base guarda RIR. Tabla 1 a 1, sin migracion. */
-const RPE_A_RIR: Record<number, number> = { 10: 0, 9: 1, 8: 2, 7: 3, 6: 4, 5: 5 };
-const RPE_OPCIONES = [10, 9, 8, 7, 6, 5];
+const RIR_OPCIONES = [0, 1, 2, 3, 4, 5];
 const INCREMENTOS_PESO = [-5, -2.5, 2.5, 5];
+const RPE_PASO = 0.5;
+const RPE_INICIAL = 8;
 
 function redondear(n: number): number {
   return Math.round(n * 100) / 100;
@@ -16,37 +16,47 @@ interface ControlesSerieProps {
   numeroSerie: number;
   totalSeries: number;
   objetivo: ObjetivoPautado;
+  /** El peso de la ultima vez que se hizo este ejercicio, si lo hubo. */
+  pesoReferencia: number | null;
   peso: number;
   onPeso: (valor: number) => void;
   reps: number;
   onReps: (valor: number) => void;
   rir: number | null;
   onRir: (valor: number) => void;
+  rpe: number | null;
+  onRpe: (valor: number | null) => void;
   descansoSegundos: number;
   autoDescanso: boolean;
   onAutoDescanso: (valor: boolean) => void;
 }
 
 /**
- * Los tres controles con los que se registra una serie, mas el descanso
- * que viene despues. Carga, reps y esfuerzo, en ese orden: es el orden en
- * el que se miran de pie delante de la barra.
+ * Los controles con los que se registra una serie.
+ *
+ * RIR y RPE son dos campos distintos, no dos nombres del mismo (D34): el
+ * RIR es lo que pauta el entrenador y se marca de un toque; el RPE es como
+ * se te hizo la serie y es opcional, en pasos de 0,5.
  */
 export function ControlesSerie({
   numeroSerie,
   totalSeries,
   objetivo,
+  pesoReferencia,
   peso,
   onPeso,
   reps,
   onReps,
   rir,
   onRir,
+  rpe,
+  onRpe,
   descansoSegundos,
   autoDescanso,
   onAutoDescanso,
 }: ControlesSerieProps) {
   const repsObjetivo = textoReps(objetivo);
+  const rirObjetivo = objetivo.target_rir;
 
   return (
     <section className="rounded-card border border-accent/30 bg-surface p-4">
@@ -62,10 +72,14 @@ export function ControlesSerie({
 
       <div className="mb-4">
         <div className="mb-2 flex items-baseline justify-between gap-2">
-          <p className="text-label-md uppercase tracking-wide text-text-muted">Carga total</p>
-          {objetivo.target_weight != null && (
-            <p className="text-label-md tabular-nums text-accent">Pautado: {objetivo.target_weight} kg</p>
-          )}
+          <p className="text-label-md uppercase tracking-wide text-text-muted">Carga</p>
+          <p className="text-label-md tabular-nums text-accent">
+            {objetivo.target_weight != null
+              ? `Pautado: ${objetivo.target_weight} kg`
+              : pesoReferencia != null
+                ? `Última vez: ${pesoReferencia} kg`
+                : "Sin pautar · elige tú"}
+          </p>
         </div>
         <div className="flex h-touch-stepper items-stretch overflow-hidden rounded-button border border-border">
           {INCREMENTOS_PESO.slice(0, 2).map((inc) => (
@@ -99,7 +113,7 @@ export function ControlesSerie({
 
       <div className="mb-4">
         <div className="mb-2 flex items-baseline justify-between gap-2">
-          <p className="text-label-md uppercase tracking-wide text-text-muted">Repeticiones conseguidas</p>
+          <p className="text-label-md uppercase tracking-wide text-text-muted">Repeticiones</p>
           {repsObjetivo && (
             <p className="text-label-md tabular-nums text-accent">Objetivo: {repsObjetivo} reps</p>
           )}
@@ -130,30 +144,82 @@ export function ControlesSerie({
 
       <div className="mb-4">
         <div className="mb-2 flex items-baseline justify-between gap-2">
-          <p className="text-label-md uppercase tracking-wide text-text-muted">Esfuerzo percibido (RPE)</p>
-          <p className="text-label-md text-accent">
-            {rir != null ? `${rir} reps en reserva (RIR ${rir})` : "Sin marcar"}
+          <p className="text-label-md uppercase tracking-wide text-text-muted">
+            RIR <span className="normal-case tracking-normal">· reps que me dejo</span>
           </p>
+          {rirObjetivo != null && (
+            <p className="text-label-md tabular-nums text-accent">Pautado: RIR {rirObjetivo}</p>
+          )}
         </div>
         <div className="flex gap-1.5">
-          {RPE_OPCIONES.map((rpe) => {
-            const rirDeEsteRpe = RPE_A_RIR[rpe]!;
-            const activo = rir === rirDeEsteRpe;
+          {RIR_OPCIONES.map((valor) => {
+            const activo = rir === valor;
+            const esObjetivo = rirObjetivo === valor;
             return (
               <button
-                key={rpe}
+                key={valor}
                 type="button"
-                onClick={() => onRir(rirDeEsteRpe)}
+                onClick={() => onRir(valor)}
                 aria-pressed={activo}
+                aria-label={esObjetivo ? `RIR ${valor}, el pautado` : `RIR ${valor}`}
                 className={
                   "text-label h-touch flex-1 rounded-button font-mono tabular-nums " +
-                  (activo ? "bg-accent text-on-accent" : "bg-surface-2 text-text-muted active:bg-border")
+                  (activo
+                    ? "bg-accent text-on-accent"
+                    : esObjetivo
+                      ? "border border-accent/60 bg-surface-2 text-accent active:bg-border"
+                      : "bg-surface-2 text-text-muted active:bg-border")
                 }
               >
-                {rpe}
+                {valor}
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="mb-2 flex items-baseline justify-between gap-2">
+          <p className="text-label-md uppercase tracking-wide text-text-muted">
+            RPE <span className="normal-case tracking-normal">· cómo se me ha hecho</span>
+          </p>
+          <p className="text-label-md text-text-faint">Opcional</p>
+        </div>
+        <div className="flex h-touch items-stretch overflow-hidden rounded-button border border-border">
+          <button
+            type="button"
+            onClick={() => onRpe(rpe == null ? RPE_INICIAL : Math.max(0, redondear(rpe - RPE_PASO)))}
+            aria-label="Bajar el RPE"
+            className="w-14 shrink-0 bg-surface-2 text-title-lg text-text active:bg-border"
+          >
+            −
+          </button>
+          <div className="flex flex-1 items-center justify-center gap-2 border-x border-border bg-surface-2/40">
+            <span className="font-mono text-metric-md tabular-nums text-text">
+              {rpe != null ? rpe.toFixed(1) : "—"}
+            </span>
+            {rpe != null && rir != null && rpe !== rpeEquivalente(rir) && (
+              <span className="text-caption text-accent-3">≠ RIR {rir}</span>
+            )}
+            {rpe != null && (
+              <button
+                type="button"
+                onClick={() => onRpe(null)}
+                aria-label="Quitar el RPE"
+                className="text-caption text-text-faint underline"
+              >
+                quitar
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => onRpe(rpe == null ? RPE_INICIAL : Math.min(10, redondear(rpe + RPE_PASO)))}
+            aria-label="Subir el RPE"
+            className="w-14 shrink-0 bg-surface-2 text-title-lg text-accent active:bg-border"
+          >
+            +
+          </button>
         </div>
       </div>
 

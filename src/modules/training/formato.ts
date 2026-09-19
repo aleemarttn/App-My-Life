@@ -42,11 +42,11 @@ export function textoReps(o: ObjetivoPautado): string | null {
 }
 
 /**
- * El objetivo de la sesion en la forma del mockup: "4 × 6-8 @ RPE 8".
+ * El objetivo de la sesion: "4 × 6-8 · RIR 2".
  *
- * El RPE que se ensena es la cara visible del `rir` pautado (D30, la misma
- * tabla 1 a 1 que usa el selector): no es una metrica calculada, es la
- * columna `rir` del Excel leida en la escala que se usa en la pantalla.
+ * En RIR y no en RPE (D34): `target_rir` es lo unico que pauta el Excel del
+ * entrenador, y traducirlo a RPE obligaba a Alejandro a hacer la cuenta al
+ * reves en el gimnasio para comprobar si iba en la pauta.
  */
 export function objetivoSesion(o: ObjetivoPautado): string {
   const partes: string[] = [];
@@ -70,7 +70,16 @@ export function objetivoSesion(o: ObjetivoPautado): string {
 
   const base = partes.join(" · ");
   if (base === "") return "Sin objetivo pautado";
-  return o.target_rir != null ? `${base} @ RPE ${10 - o.target_rir}` : base;
+  return o.target_rir != null ? `${base} · RIR ${o.target_rir}` : base;
+}
+
+/**
+ * El RPE equivalente a un RIR, para ensenarlo como referencia debajo del
+ * selector de RIR (D34). NO es el RPE que se guarda: ese lo marca Alejandro
+ * a mano y puede no coincidir, que es justo el dato interesante.
+ */
+export function rpeEquivalente(rir: number): number {
+  return Math.max(0, 10 - rir);
 }
 
 /** mm:ss de un cronometro o de un descanso. */
