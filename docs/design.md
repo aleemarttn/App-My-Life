@@ -154,6 +154,11 @@ env(safe-area-inset-bottom) en la barra inferior y en los botones fijos.
 | 6 | Salud - cuerpo, readiness y biometria, D29, pestana propia | health | 1.5 / 3 |
 | 7 | Coche - ficha del vehiculo | car | 2 |
 | 8 | Importar rutina desde Excel | training | 1 |
+| 9 | Entreno - portada con la sesion en curso (D31) | training | 1 |
+
+La pantalla 2 tiene dos caras desde D31: el resumen del dia cuando no hay nada empezado y la
+pantalla 9 cuando hay una sesion viva. La 3 se sale con flecha sin terminar la sesion, y la
+secuencia de series se ve entera en la 9, que es donde hay sitio para leerla con calma.
 
 La pantalla 3 sigue siendo la que decide el proyecto (D28 no cambia esto): sigue sin probarse en
 el gimnasio con el dedo real. El HUD, el RPE y la secuencia de series son anadidos sobre el mismo

@@ -1,19 +1,26 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useNavigate } from "react-router";
-import { db, usuarioActualId } from "@/core/db";
+import { actualizar, usuarioActualId } from "@/core/db";
 import { Button } from "@/core/ui/Button";
 import { Card } from "@/core/ui/Card";
 import { EmptyState } from "@/core/ui/EmptyState";
-import { ListRow } from "@/core/ui/ListRow";
 import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import { MetricTile } from "@/core/ui/MetricTile";
 import { CalendarioSemana } from "./CalendarioSemana";
 import { exportarRutinaActiva } from "./exportarRutina";
-import { objetivoCorto } from "./formato";
 import { calcularProximoEntreno, calcularSemanaActual } from "./proximoEntreno";
+import { ResumenDia } from "./ResumenDia";
+import { SesionEnCurso } from "./SesionEnCurso";
 import { useEntrenosEstaSemana } from "./useEntrenosEstaSemana";
+import { useSesionEnCurso } from "./useSesionEnCurso";
 
+/**
+ * Portada de Entreno. Tiene dos caras (D31): el resumen del dia que toca
+ * cuando no hay nada empezado, y el estado de la sesion cuando la hay --
+ * que es lo que se ve al salir del modo entreno con la flecha sin haberlo
+ * terminado.
+ */
 export function TrainingScreen() {
   const navigate = useNavigate();
   const userId = usuarioActualId();
@@ -37,32 +44,21 @@ export function TrainingScreen() {
       enlace.click();
       URL.revokeObjectURL(url);
 
-      setAvisoExportacion(`Exportadas ${resultado.filas} series de ${resultado.semanas} semana${resultado.semanas === 1 ? "" : "s"}.`);
+      setAvisoExportacion(
+        `Exportadas ${resultado.filas} series de ${resultado.semanas} semana${resultado.semanas === 1 ? "" : "s"}.`,
+      );
     } finally {
       setExportando(false);
     }
   }
 
   const entrenosEstaSemana = useEntrenosEstaSemana();
-
-  const sesionActiva = useLiveQuery(
-    async () => {
-      if (!userId) return undefined;
-      const sesiones = await db.workout_sessions
-        .where("user_id")
-        .equals(userId)
-        .filter((s) => s.ended_at == null && s.deleted_at == null)
-        .toArray();
-      return sesiones.at(-1);
-    },
-    [userId],
-    undefined,
-  );
+  const enCurso = useSesionEnCurso();
 
   const proximo = useLiveQuery(async () => (userId ? await calcularProximoEntreno(userId) : null), [userId]);
   const semana = useLiveQuery(async () => (userId ? await calcularSemanaActual(userId) : null), [userId]);
 
-  if (proximo === undefined) return null;
+  if (proximo === undefined || enCurso === undefined) return null;
 
   if (proximo === null) {
     return (
@@ -70,6 +66,17 @@ export function TrainingScreen() {
         titulo="Todavía no hay rutina"
         descripcion="Importa el Excel de tu entrenador y la app se encarga del resto."
         accion={<Button onClick={() => navigate("/entreno/importar")}>Importar rutina</Button>}
+      />
+    );
+  }
+
+  if (enCurso) {
+    return (
+      <SesionEnCurso
+        datos={enCurso}
+        onTerminar={() =>
+          void actualizar("workout_sessions", enCurso.sesion.id, { ended_at: new Date().toISOString() })
+        }
       />
     );
   }
@@ -90,37 +97,7 @@ export function TrainingScreen() {
         />
       </div>
 
-      <Card
-        titulo={sesionActiva ? "Entreno en curso" : "Te toca"}
-        accion={
-          <span className="text-caption shrink-0 tabular-nums text-text-faint">
-            día {proximo.indice + 1} de {proximo.total}
-          </span>
-        }
-      >
-        <p className="text-title mb-1">{proximo.dia.label}</p>
-        <p className="text-caption mb-3 text-text-muted">
-          {proximo.rutina.name} · semana {proximo.dia.week_number}
-          {proximo.terminado ? " · mesociclo terminado" : ""}
-        </p>
-
-        <div className="-my-1.5 mb-2 divide-y divide-border">
-          {proximo.ejercicios.map((item) =>
-            item.exercise ? (
-              <ListRow
-                key={item.routineExercise.id}
-                titulo={item.exercise.name}
-                valor={objetivoCorto(item.routineExercise)}
-                onClick={() => navigate(`/entreno/ejercicio/${item.exercise!.id}`)}
-              />
-            ) : null,
-          )}
-        </div>
-
-        <Button onClick={() => navigate("/entreno/modo")}>
-          {sesionActiva ? "Continuar entrenamiento" : "Iniciar entrenamiento"}
-        </Button>
-      </Card>
+      <ResumenDia proximo={proximo} />
 
       {semana && <CalendarioSemana weekNumber={semana.weekNumber} dias={semana.dias} />}
 

@@ -1,9 +1,10 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/core/ui/Button";
 import { EmptyState } from "@/core/ui/EmptyState";
 import { RestTimer } from "./RestTimer";
 import { SerieActiva } from "./SerieActiva";
+import { useAutoDescanso } from "./useAutoDescanso";
 import { useSesionEntreno } from "./useSesionEntreno";
 import { useWakeLock } from "./useWakeLock";
 
@@ -12,12 +13,11 @@ interface Descanso {
   segundos: number;
 }
 
-const DESCANSO_POR_DEFECTO = 120;
-
 export function ModoEntreno() {
   const navigate = useNavigate();
   const sesion = useSesionEntreno();
   const [descanso, setDescanso] = useState<Descanso | null>(null);
+  const [autoDescanso, setAutoDescanso] = useAutoDescanso();
 
   useWakeLock(!sesion.completada);
 
@@ -63,15 +63,21 @@ export function ModoEntreno() {
       paso={paso}
       sesion={sesionRow}
       logsDelEjercicioActual={sesion.logsDelEjercicioActual}
+      autoDescanso={autoDescanso}
+      onAutoDescanso={setAutoDescanso}
       onConfirmar={(entrada) => {
         void sesion.confirmarSerie(entrada);
+        if (!autoDescanso) return;
         setDescanso({
           clave: `${paso.sessionExercise.id}-${paso.numeroSerie}`,
-          segundos: paso.planned.rest_seconds ?? DESCANSO_POR_DEFECTO,
+          segundos: paso.descansoSegundos,
         });
       }}
       onSaltar={() => void sesion.saltarEjercicio()}
       onSustituir={(nuevoId, motivo) => void sesion.sustituirEjercicio(nuevoId, motivo)}
+      /* Salir NO cierra la sesion: sigue viva y la portada de Entreno la
+         enseña en curso (D31). Cerrarla es solo cosa de "Fin". */
+      onSalir={() => navigate("/entreno")}
       onTerminarSesion={() => {
         void sesion.terminarSesion();
         navigate("/entreno");

@@ -20,7 +20,15 @@ export interface PasoActual {
   planned: ObjetivoPlan;
   numeroSerie: number;
   totalSeries: number;
+  /** Posicion del ejercicio dentro del dia, 1-indexada: "ejercicio 3 de 5". */
+  indiceEjercicio: number;
+  totalEjercicios: number;
+  /** El descanso pautado en el Excel, o el de por defecto si no venia. */
+  descansoSegundos: number;
 }
+
+/** Lo que se descansa cuando el Excel del entrenador no dice nada. */
+export const DESCANSO_POR_DEFECTO = 120;
 
 interface DatosSesion {
   sesion: Tables<"workout_sessions"> | undefined;
@@ -33,13 +41,21 @@ function seriesDe(planned: ObjetivoPlan): number {
 }
 
 function calcularPaso(datos: DatosSesion): PasoActual | null {
-  for (const se of datos.ejercicios) {
+  for (const [indice, se] of datos.ejercicios.entries()) {
     if (se.skipped) continue;
     const planned = se.planned as unknown as ObjetivoPlan;
     const total = seriesDe(planned);
     const hechas = datos.logsPorEjercicio[se.id]?.length ?? 0;
     if (hechas < total) {
-      return { sessionExercise: se, planned, numeroSerie: hechas + 1, totalSeries: total };
+      return {
+        sessionExercise: se,
+        planned,
+        numeroSerie: hechas + 1,
+        totalSeries: total,
+        indiceEjercicio: indice + 1,
+        totalEjercicios: datos.ejercicios.length,
+        descansoSegundos: planned.rest_seconds ?? DESCANSO_POR_DEFECTO,
+      };
     }
   }
   return null;

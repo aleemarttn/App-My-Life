@@ -3,7 +3,7 @@
 > **Este archivo se lee al empezar cada sesión de trabajo y se actualiza al terminarla.**
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
-**Última actualización:** 18/09/2026 (sesión de noche)
+**Última actualización:** 19/09/2026
 **Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** En curso: fase 1 — entrenamiento
 **Siguiente hito:** probar en el gimnasio el circuito completo — importar rutina, entrenarla y ver que sube
 
@@ -47,11 +47,44 @@
 
 9. [x] **Rediseno visual completo (Inicio + todo Entreno) al sistema `Kinetic Obsidian` -- hecho el 18/09/2026 (noche), D28-D30.** Salud pasa a sexta pestana. Ver nota de la sesion mas abajo.
 
+10. [x] **Las tres pantallas de Entreno y el modo entreno al nivel del mockup — hecho el 19/09/2026, D31-D33.** Ver nota de la sesión más abajo. **Sin verificar en el navegador**: la extensión de Chrome no estaba conectada.
+
+11. [ ] **Marcar una serie como calentamiento.** `set_logs.is_warmup` existe en la base y la secuencia de series ya lo pinta si viene marcado, pero el modo entreno escribe siempre `false`: no hay forma de decirlo desde la interfaz. El mockup del 19/09 lo dibuja ("#1 · Calentamiento pesado"). No se construyó porque toca D26 (el exportador excluye calentamientos) y `metricas.ts` (las gráficas también): hay que decidir antes si un calentamiento cuenta para el entrenador.
+
 **Criterio de salida de la fase 1:** 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque.
 
 ---
 
 ## Notas para la siguiente sesión
+
+- **19/09/2026 — Entreno pasa a tres pantallas y el modo entreno sube al nivel del mockup (D31-D33).**
+  Alejandro compartió el mockup de Stitch de la pantalla de entreno iniciado y pidió llevar sus elementos
+  a la app: secuencia de series, objetivo de la sesión, y una flecha para salir del modo entreno sin
+  terminarlo. Instrucción explícita durante la sesión: *"todos los datos de % y del entrenamiento como tal,
+  te los dará el excel. Por ahora no tengo pensado que calcules nada"* → D32.
+  - **D31 — tres pantallas, una sola sesión detrás:** `ResumenDia.tsx` (portada antes de empezar),
+    `SerieActiva.tsx` (modo entreno) y `SesionEnCurso.tsx` (portada con la sesión viva). La flecha del
+    HUD sale a `/entreno` sin escribir `ended_at`. `TrainingScreen.tsx` decide cuál de las dos caras
+    pinta. Nuevo hook `useSesionEnCurso.ts`, de **solo lectura**: la portada no podía usar
+    `useSesionEntreno`, que crea la sesión al montarse (abrir la pestaña habría empezado un entreno).
+  - **Modo entreno reconstruido** en piezas de menos de 200 líneas: `HudSesion.tsx` (extraído, + flecha),
+    `CabeceraEjercicio.tsx` ("ejercicio 3 de 5" + grupo muscular + historial + objetivo + e1RM),
+    `ControlesSerie.tsx` (carga total, reps, RPE con su RIR, descanso + auto-inicio) y
+    `SecuenciaSeries.tsx` (lista de solo lectura, compartida con la portada en curso).
+    El botón de registrar ahora lee lo que va a guardar ("Registrar serie 3 · 85 kg · 8 reps · RPE 8")
+    y **sigue fijo en la zona del pulgar**, no a media página como en el mockup: `design.md` §1 y §5
+    mandan sobre el mockup en esto.
+  - **D32 — nada calculado:** fuera el "Volumen parcial", el "Volumen acumulado sesión" y el
+    "+4,5% vs obj. semanal" del mockup. Lo que se ve sale del Excel (`routine_exercises`) o es un
+    recuento ("12 de 18 series"). Se mantiene el e1RM en vivo de D28. El "Disco mín: 1,25 kg" del
+    mockup se sustituye por el **peso pautado** del Excel, que sí es un dato real.
+  - **D33 — auto-inicio del descanso** como toggle en la propia tarjeta (`useAutoDescanso.ts`,
+    `localStorage`) hasta que exista la pantalla de Ajustes. Antes el cronómetro se abría siempre.
+  - `formato.ts` gana `objetivoSesion()` (la línea "4 × 6-8 @ RPE 8"), `textoReps()` y `reloj()`, con
+    **13 tests nuevos** — 104 en total, lint y build en verde. Precaché de la PWA: 736,67 KiB.
+  - **Sin ver en el navegador:** la extensión de Chrome no estaba conectada en esta sesión (el servidor
+    de desarrollo sí arrancó). Todo lo de esta nota está probado por tipos, lint y tests, **no con el
+    dedo ni con los ojos**. Lo primero de la próxima sesión debería ser abrirlo y mirarlo.
 
 - **18/09/2026 (noche) -- Rediseno completo "Kinetic Obsidian": tokens, Inicio y todo el modulo de Entreno.**
   Alejandro compartio mockups reales (Stitch/Claude Design) para Coche, Finanzas, Nutricion, Salud y el

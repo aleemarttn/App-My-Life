@@ -533,6 +533,16 @@ La pantalla que decide el proyecto. Se usa de pie, sudando, con una mano.
 - `Sustituir` abre el buscador del catálogo y registra el motivo en `session_exercises`.
 - La sesión se puede abandonar y retomar: el estado vive en Dexie.
 - **Anadido 18/09/2026 (D28/D30), sobre el mismo principio, no en su lugar:** HUD de sesión (cronómetro, Pausar sin persistir, Fin manual), e1RM en vivo, copiar última sesión en 1-tap, selector etiquetado RPE que sigue escribiendo RIR por dentro, y una lista de solo lectura con el estado de cada serie del ejercicio.
+- **Anadido 19/09/2026 (D31):** el HUD lleva una flecha de volver que sale a la portada de Entreno **sin terminar la sesión**. Escribir `ended_at` sigue siendo exclusivo de `Fin`.
+- **Anadido 19/09/2026 (D32):** la pantalla no calcula métricas. El objetivo de la serie, el rango de reps, el RPE pautado, el peso de referencia y el descanso salen del Excel importado; lo demás son recuentos ("serie 3 de 4", "ejercicio 3 de 5"). El e1RM en vivo de D28 es la única excepción y se mantiene.
+
+**Las tres pantallas del módulo (D31).** Registrar sigue siendo exclusivo del modo entreno; las otras dos son para mirar:
+
+| Pantalla | Cuándo | Para qué |
+|---|---|---|
+| Portada sin sesión | No hay entreno empezado | Ver el día entero antes de meterse: ejercicios, pauta de cada uno, descanso y grupos musculares |
+| Modo entreno | Dentro de la sesión | Registrar series. Una visible, un paso cada vez |
+| Portada con sesión en curso | Se salió del modo entreno con la flecha | Cronómetro, secuencia de series del ejercicio actual, recorrido del día y volver a entrar |
 
 ### 4.8 Progresión
 
