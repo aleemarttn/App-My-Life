@@ -3,7 +3,7 @@
 > **Este archivo se lee al empezar cada sesión de trabajo y se actualiza al terminarla.**
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
-**Última actualización:** 19/09/2026
+**Última actualización:** 21/09/2026
 **Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** En curso: fase 1 — entrenamiento
 **Siguiente hito:** probar en el gimnasio el circuito completo — importar rutina, entrenarla y ver que sube
 
@@ -30,8 +30,8 @@
 - [x] **Punto 10** — Desplegada en Vercel: **https://app-my-life.vercel.app** (D20). Verificado el 10/09/2026 contra el sitio en producción: la URL correcta va incrustada, no hay ninguna `service_role` en ningún trozo, las ocho rutas cargan por la reescritura de SPA, las cuatro cabeceras de seguridad llegan, la CSP permite la conexión con Supabase, el cacheado es inmutable en assets y nulo en `sw.js`, y la clave anon responde 200 contra la API
 
 ### En curso
-- [ ] **Punto 6 — a medias.** `src/core/supabase/types.ts` ya está generado y el cliente va tipado, pero se generó desde el MCP de Supabase, no con la CLI. Hay que rehacerlo con la CLI en cuanto esté instalada, y **regenerarlo después de cada migración**.
-- [ ] Recomendable: **borrar los despliegues antiguos de Vercel**. Ya no contienen nada aprovechable —la clave que llevaban está muerta—, pero cada uno conserva una URL propia y permanente y no aportan nada.
+- [x] **Punto 6 — tipos regenerados con la CLI oficial (21/09/2026).** `src/core/supabase/types.ts` refleja el esquema remoto. Hay que regenerarlo después de cada migración.
+- [x] **Despliegues antiguos de Vercel eliminados (21/09/2026).** Se conservaron los que tuvieran alias activo; queda únicamente la producción actual.
 
 - [x] **Punto 11 — PRUEBA DE ACEPTACIÓN SUPERADA (10/09/2026).** Instalada en el iPhone desde la URL de producción. Registros creados en modo avión, app cerrada del todo, red recuperada, y todo llegó a Supabase solo. **29 filas subidas y cero desordenadas**, repartidas en solo 17 segundos distintos: varias creadas dentro del mismo segundo mantuvieron el orden correcto, que es el contador de secuencia del UUID v7 haciendo su trabajo en condiciones reales. Registros de prueba borrados del servidor después.
 
@@ -49,7 +49,7 @@
 
 10. [x] **Las tres pantallas de Entreno y el modo entreno al nivel del mockup — hecho el 19/09/2026, D31-D33.** Ver nota de la sesión más abajo. **Sin verificar en el navegador**: la extensión de Chrome no estaba conectada.
 
-11. [ ] **Marcar una serie como calentamiento.** `set_logs.is_warmup` existe en la base y la secuencia de series ya lo pinta si viene marcado, pero el modo entreno escribe siempre `false`: no hay forma de decirlo desde la interfaz. El mockup del 19/09 lo dibuja ("#1 · Calentamiento pesado"). No se construyó porque toca D26 (el exportador excluye calentamientos) y `metricas.ts` (las gráficas también): hay que decidir antes si un calentamiento cuenta para el entrenador.
+11. [x] **Marcar una serie como calentamiento — hecho el 21/09/2026.** El chip de estado de la serie alterna entre “Efectiva” y “Calentamiento”. Los calentamientos no consumen una serie pautada, se distinguen en la secuencia y siguen excluidos de exportaciones y métricas.
 
 **Criterio de salida de la fase 1:** 4 semanas de entrenamientos reales registrados sin volver al Excel a mitad de bloque.
 
@@ -57,17 +57,26 @@
 
 ## Notas para la siguiente sesión
 
+- **21/09/2026 — Calentamientos y tipos de Supabase.** El modo entreno ya permite marcar
+  una serie como calentamiento. Se guarda en `set_logs.is_warmup`; el indice de escritura
+  incluye todas las series para conservar su unicidad, pero el avance de la pauta y el estado
+  de la sesion solo cuentan las efectivas. El exportador y las metricas ya excluian
+  calentamientos y se mantiene esa regla. Tipos regenerados desde el esquema remoto con
+  `supabase gen types typescript --project-id wcmtrjjalwbchrmlsvow --schema public`; no hubo
+  cambios de esquema respecto al archivo versionado. 108 tests, lint y build en verde.
+
 - **19/09/2026 (tarde) — `docs/plantillas/rutina-con-pesos.xlsx`, y tres ejercicios mal emparejados en la base.**
   Alejandro pidió un Excel con pesos inventados para ver en pantalla cómo queda un objetivo CON peso
   pautado (su rutina real no trae ninguno). Se generó a partir de la propia base: sus días, sus
   ejercicios, sus reps/RIR/descansos/notas, semanas 1 y 2, y una columna `peso` inventada en 22 de las
   30 filas. Validado por `importarConPesos.test.ts` contra el validador real antes de dárselo.
-  - **Hallazgo al generarlo:** el validador rechazaba tres filas ("un ejercicio de cardio necesita
+  - **Hallazgo al generarlo:** el validador rechazaba tres tipos de fila ("un ejercicio de cardio necesita
     duracion_seg o distancia_m"). Son ejercicios **mal emparejados en la importación original**: hay
     una fila de dominadas (4×6-8, "lastre si te salen más de 8 limpias") colgando de **Cinta de
     correr**, una de cardio de 25 min en zona 2 colgando de **Extensión de tríceps polea**, y un
-    accesorio de pierna colgando de **Elíptica**. La base tiene `exercises.kind` incoherente con lo
-    que pauta la fila. **Pendiente de decidir con Alejandro** si se corrigen los emparejamientos.
+    accesorio de pierna colgando de **Elíptica**. La base tenía `exercises.kind` incoherente con lo
+    que pauta la fila. **Corregido el 21/09/2026:** 2 filas a Dominadas, 4 a Cinta de correr y 3 a
+    Elevación de gemelos; las 5 instantáneas históricas correspondientes se corrigieron también.
   - **Las semanas 3 y 4 de la rutina están casi vacías** (2 y 6 filas frente a las 15 de las semanas
     1 y 2). No se ha tocado: puede ser así en el Excel original del entrenador.
 

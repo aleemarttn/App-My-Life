@@ -66,6 +66,7 @@ export function SerieActiva({
   const [pesoElegido, setPesoElegido] = useState<number | null>(planned.target_weight);
   const [rir, setRir] = useState<number | null>(planned.target_rir);
   const [rpe, setRpe] = useState<number | null>(null);
+  const [isWarmup, setIsWarmup] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [notaAbierta, setNotaAbierta] = useState(false);
   const [nota, setNota] = useState("");
@@ -133,6 +134,8 @@ export function SerieActiva({
           onRir={setRir}
           rpe={rpe}
           onRpe={setRpe}
+          isWarmup={isWarmup}
+          onWarmup={setIsWarmup}
           descansoSegundos={paso.descansoSegundos}
           autoDescanso={autoDescanso}
           onAutoDescanso={onAutoDescanso}
@@ -177,9 +180,9 @@ export function SerieActiva({
       <div className="pb-accion-safe fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur">
         <Button
           className="h-auto min-h-touch-primary py-2 leading-tight"
-          onClick={() => onConfirmar({ reps, peso, rir, rpe, tags, nota })}
+          onClick={() => onConfirmar({ reps, peso, rir, rpe, tags, nota, isWarmup })}
         >
-          Registrar {resumenRegistro}
+          Registrar {isWarmup ? "calentamiento · " : ""}{resumenRegistro}
         </Button>
       </div>
 

@@ -26,6 +26,8 @@ interface ControlesSerieProps {
   onRir: (valor: number) => void;
   rpe: number | null;
   onRpe: (valor: number | null) => void;
+  isWarmup: boolean;
+  onWarmup: (valor: boolean) => void;
   descansoSegundos: number;
   autoDescanso: boolean;
   onAutoDescanso: (valor: boolean) => void;
@@ -51,6 +53,8 @@ export function ControlesSerie({
   onRir,
   rpe,
   onRpe,
+  isWarmup,
+  onWarmup,
   descansoSegundos,
   autoDescanso,
   onAutoDescanso,
@@ -67,7 +71,14 @@ export function ControlesSerie({
             Serie {numeroSerie} de {totalSeries}
           </h2>
         </div>
-        <Pill color="accent">Efectiva</Pill>
+        <button
+          type="button"
+          onClick={() => onWarmup(!isWarmup)}
+          aria-pressed={isWarmup}
+          className="rounded-chip focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
+          <Pill color={isWarmup ? "accent-3" : "accent"}>{isWarmup ? "Calentamiento" : "Efectiva"}</Pill>
+        </button>
       </div>
 
       <div className="mb-4">

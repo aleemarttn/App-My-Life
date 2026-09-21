@@ -1,8 +1,7 @@
 // GENERADO AUTOMATICAMENTE — NO EDITAR A MANO.
 // Regenerar tras cada migracion:
 //   supabase gen types typescript --project-id wcmtrjjalwbchrmlsvow > src/core/supabase/types.ts
-// (o desde el MCP de Supabase, que es como se genero este archivo:
-//  la CLI no esta instalada en la maquina de trabajo.)
+// Generado con la CLI oficial el 21/09/2026 desde el esquema remoto.
 
 export type Json =
   | string

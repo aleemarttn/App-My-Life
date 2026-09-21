@@ -19,6 +19,8 @@ export interface PasoActual {
   sessionExercise: Tables<"session_exercises">;
   planned: ObjetivoPlan;
   numeroSerie: number;
+  /** Incluye calentamientos para respetar el indice unico de cada registro. */
+  indiceRegistro: number;
   totalSeries: number;
   /** Posicion del ejercicio dentro del dia, 1-indexada: "ejercicio 3 de 5". */
   indiceEjercicio: number;
@@ -45,12 +47,15 @@ function calcularPaso(datos: DatosSesion): PasoActual | null {
     if (se.skipped) continue;
     const planned = se.planned as unknown as ObjetivoPlan;
     const total = seriesDe(planned);
-    const hechas = datos.logsPorEjercicio[se.id]?.length ?? 0;
+    const logs = datos.logsPorEjercicio[se.id] ?? [];
+    // Los calentamientos preparan una serie efectiva; no la sustituyen.
+    const hechas = logs.filter((log) => !log.is_warmup).length;
     if (hechas < total) {
       return {
         sessionExercise: se,
         planned,
         numeroSerie: hechas + 1,
+        indiceRegistro: logs.length + 1,
         totalSeries: total,
         indiceEjercicio: indice + 1,
         totalEjercicios: datos.ejercicios.length,
@@ -70,6 +75,7 @@ export interface EntradaSerie {
   rpe: number | null;
   tags: string[];
   nota: string;
+  isWarmup: boolean;
 }
 
 export interface EstadoSesionEntreno {
@@ -177,8 +183,8 @@ export function useSesionEntreno(): EstadoSesionEntreno {
     if (!paso) return;
     await crear("set_logs", {
       session_exercise_id: paso.sessionExercise.id,
-      set_index: paso.numeroSerie,
-      is_warmup: false,
+      set_index: paso.indiceRegistro,
+      is_warmup: entrada.isWarmup,
       weight: entrada.peso,
       reps: entrada.reps,
       rir: entrada.rir,

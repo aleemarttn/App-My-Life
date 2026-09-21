@@ -72,7 +72,7 @@ export function useSesionEnCurso(): SesionEnCurso | null | undefined {
       const planned = se.planned as unknown as ObjetivoPlan;
       const totalSeries = seriesDe(planned);
       const propios = logsPorEjercicio[se.id] ?? [];
-      const completo = propios.length >= totalSeries;
+      const completo = propios.filter((log) => !log.is_warmup).length >= totalSeries;
 
       let estado: EstadoEjercicio;
       if (se.skipped) estado = "saltado";

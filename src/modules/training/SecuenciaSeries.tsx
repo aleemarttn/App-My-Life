@@ -45,12 +45,23 @@ interface SecuenciaSeriesProps {
  * cuando hay una sesion en curso.
  */
 export function SecuenciaSeries({ totalSeries, objetivo, logs, numeroActual }: SecuenciaSeriesProps) {
+  const calentamientos = logs.filter((log) => log.is_warmup);
+  const efectivas = logs.filter((log) => !log.is_warmup);
   const numeros = Array.from({ length: totalSeries }, (_, i) => i + 1);
 
   return (
     <ul className="divide-y divide-border">
+      {calentamientos.map((log, indice) => (
+        <li key={log.id} className="flex items-center gap-3 py-2.5">
+          <span className="text-label-md w-7 shrink-0 font-mono tabular-nums text-accent-3">C{indice + 1}</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-body text-text">Calentamiento</p>
+            <p className="text-caption truncate text-text-muted">{textoRegistrada(log)}</p>
+          </div>
+        </li>
+      ))}
       {numeros.map((numero) => {
-        const log = logs[numero - 1];
+        const log = efectivas[numero - 1];
         const esActual = numero === numeroActual;
 
         return (
