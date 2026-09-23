@@ -57,6 +57,19 @@
 
 ## Notas para la siguiente sesión
 
+- **23/09/2026 (tarde) — Primera prueba real en el gimnasio: dos fallos arreglados, rediseño de la
+  pantalla de serie activa en marcha.** Alejandro probó el modo entreno de pie, en el gimnasio.
+  Arreglado ya (D38): la carga y las reps se pueden teclear a mano tocando la cifra (los botones
+  +/- de 2,5 kg no llegan a un peso exacto con discos de 1 o 1,25 kg), y el botón de salir del
+  modo entreno lleva texto "Entreno" además del icono (antes era un icono gris pequeño y se quedó
+  sin poder salir). **Pendiente, esperando respuesta de Alejandro:** un rediseño más amplio de
+  `SerieActiva` — quiere volver a algo más parecido a la idea original (botones enormes,
+  proceso simple de rellenar reps/peso), con el objetivo de la serie bien visible arriba
+  ("Serie 1 de press banca · objetivo 80×5×RIR 2"), y sacando fuera de esa pantalla concreta buena
+  parte de lo añadido en D28-D34 (HUD, RPE, e1RM en vivo, secuencia de series, copiar última,
+  notas/etiquetas, sustituir/saltar) — todavía sin decidir qué de eso se queda, se mueve o se quita
+  del todo. No tocar `SerieActiva`/`ControlesSerie` de fondo hasta cerrar eso con él.
+
 - **23/09/2026 — Capa LLM del importador de Excel, construida y desplegada, sin probar (D37).**
   Alejandro pidió acabar con lo pendiente de fase 1; los dos únicos puntos que quedaban eran no-código
   (probar en el gimnasio, y esta capa aparcada que necesitaba su decisión de proveedor). Eligió Gemini.

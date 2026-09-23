@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import { Pill } from "@/core/ui/Pill";
 import { reloj, rpeEquivalente, textoReps } from "./formato";
@@ -10,6 +11,75 @@ const RPE_INICIAL = 8;
 
 function redondear(n: number): number {
   return Math.round(n * 100) / 100;
+}
+
+interface ValorTecleableProps {
+  valor: string;
+  onCambiar: (valor: number) => void;
+  ariaLabel: string;
+  className: string;
+}
+
+/**
+ * El numero de la carga o de las reps, tocable para teclear un valor exacto.
+ *
+ * Bug real encontrado en el gimnasio (23/09/2026): los botones +/- de la
+ * carga solo mueven de 2,5 en 2,5 kg (D-sin-numero de esta sesion, sobre
+ * D28). Si el disco minimo del gimnasio es de 1 kg o de 1,25 kg, no hay
+ * combinacion de esos botones que llegue al peso exacto. Se mantienen los
+ * botones para el caso normal (mas rapido, sin teclado) y se anade este
+ * teclado del sistema SOLO al tocar la cifra, para el caso en que hace
+ * falta precision que los saltos fijos no dan.
+ */
+function ValorTecleable({ valor, onCambiar, ariaLabel, className }: ValorTecleableProps) {
+  const [editando, setEditando] = useState(false);
+  const [texto, setTexto] = useState(valor);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!editando) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [editando]);
+
+  function confirmar(): void {
+    const n = Number(texto.replace(",", "."));
+    if (Number.isFinite(n) && n >= 0) onCambiar(redondear(n));
+    setEditando(false);
+  }
+
+  if (editando) {
+    return (
+      <input
+        ref={inputRef}
+        type="number"
+        inputMode="decimal"
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        onBlur={confirmar}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") setEditando(false);
+        }}
+        aria-label={ariaLabel}
+        className={`${className} w-full bg-transparent text-center outline-none`}
+      />
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setTexto(valor);
+        setEditando(true);
+      }}
+      aria-label={`${ariaLabel}. Toca para escribir un número exacto`}
+      className={className}
+    >
+      {valor}
+    </button>
+  );
 }
 
 interface ControlesSerieProps {
@@ -105,7 +175,12 @@ export function ControlesSerie({
             </button>
           ))}
           <div className="flex flex-1 items-baseline justify-center gap-1 border-x border-border bg-surface-2/40">
-            <span className="font-mono text-metric-xl tabular-nums text-text">{peso.toFixed(1)}</span>
+            <ValorTecleable
+              valor={peso.toFixed(1)}
+              onCambiar={(v) => onPeso(Math.max(0, v))}
+              ariaLabel="Carga en kilos"
+              className="font-mono text-metric-xl tabular-nums text-text"
+            />
             <span className="text-label-md uppercase text-text-muted">kg</span>
           </div>
           {INCREMENTOS_PESO.slice(2).map((inc) => (
@@ -139,7 +214,12 @@ export function ControlesSerie({
             −
           </button>
           <div className="flex flex-1 items-baseline justify-center gap-1 border-x border-border bg-surface-2/40">
-            <span className="font-mono text-metric-xl tabular-nums text-text">{reps}</span>
+            <ValorTecleable
+              valor={String(reps)}
+              onCambiar={(v) => onReps(Math.max(0, Math.round(v)))}
+              ariaLabel="Repeticiones"
+              className="font-mono text-metric-xl tabular-nums text-text"
+            />
             <span className="text-label-md uppercase text-text-muted">reps</span>
           </div>
           <button

@@ -26,13 +26,18 @@ export function HudSesion({ iniciadaEn, onSalir, onTerminar }: HudSesionProps) {
 
   return (
     <div className="flex items-center gap-2 rounded-card border border-border bg-surface-2 px-2 py-1.5">
+      {/* Bug real del gimnasio (23/09/2026): el icono solo, gris y pequeño,
+          no se veia como la salida de la pantalla -- Alejandro se quedo
+          atrapado en el modo entreno sin encontrar como salir. Con texto,
+          no solo icono. */}
       <button
         type="button"
         onClick={onSalir}
         aria-label="Volver a Entreno sin terminar la sesión"
-        className="size-touch grid shrink-0 place-items-center rounded-button text-text-muted active:bg-surface-3"
+        className="text-label-sm flex h-touch shrink-0 items-center gap-1 rounded-button pr-2 font-mono uppercase tracking-wide text-text active:bg-surface-3"
       >
         <MaterialIcon nombre="arrow_back" tamano={22} />
+        Entreno
       </button>
 
       <div className="min-w-0 flex-1">
