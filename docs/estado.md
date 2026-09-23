@@ -57,6 +57,15 @@
 
 ## Notas para la siguiente sesión
 
+- **23/09/2026 (tarde, cont.) — Segunda ronda de la prueba en el gimnasio, con capturas: dos
+  fallos más arreglados (D40).** (1) Entrar en `/entreno/modo` con la pestaña abierta desde antes
+  de un despliegue reventaba con la pantalla cruda de react-router ("'text/html' is not a valid
+  JavaScript MIME type") — un `import()` dinámico pedía un trozo de una build ya reemplazada.
+  Arreglado con un listener de `vite:preloadError` en `main.tsx` que recarga sola. (2) La barra
+  fija de "Continuar entrenamiento" en `SesionEnCurso` tapaba la barra de pestañas de abajo
+  (z-index más alto que `TabBar`, con fondo casi opaco extendido hasta el borde por el padding).
+  Bajada a `z-10`. 108 tests, lint y build en verde. **Sin verificar todavía en el gimnasio.**
+
 - **23/09/2026 (tarde) — Primera prueba real en el gimnasio: dos fallos arreglados (D38) y la
   pantalla de serie activa recortada a lo mínimo (D39).** Alejandro probó el modo entreno de pie,
   en el gimnasio, y reportó tres cosas en la misma sesión:

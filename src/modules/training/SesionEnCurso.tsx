@@ -168,8 +168,15 @@ export function SesionEnCurso({ datos, semana, onTerminar }: SesionEnCursoProps)
         {confirmandoFin ? "Sí, dar el entreno por terminado" : "Terminar entreno"}
       </Button>
 
-      {/* Zona del pulgar (design.md §1), por encima de la barra de pestañas. */}
-      <div className="pb-tabbar-safe fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur">
+      {/* Zona del pulgar (design.md §1), con el boton por encima de la barra
+          de pestañas -- pero esta capa tiene que quedar POR DEBAJO de
+          TabBar en z-index (z-20): el fondo casi opaco de esta caja se
+          extiende hasta el borde inferior de la pantalla por el padding de
+          `pb-tabbar-safe`, y con un z-index mayor tapaba la barra entera
+          (bug real reportado el 23/09/2026: "el menu de abajo se va"). Con
+          un z-index menor, TabBar se pinta encima en esa franja compartida
+          y el boton sigue viendose igual, porque sus pixeles no se tocan. */}
+      <div className="pb-tabbar-safe fixed inset-x-0 bottom-0 z-10 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur">
         <Button onClick={volverAlEntreno}>Continuar entrenamiento</Button>
       </div>
     </div>
