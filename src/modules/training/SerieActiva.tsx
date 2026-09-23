@@ -3,15 +3,10 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { useNavigate } from "react-router";
 import { db } from "@/core/db";
 import { Button } from "@/core/ui/Button";
+import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import type { Tables } from "@/core/supabase/types";
 import { CabeceraEjercicio } from "./CabeceraEjercicio";
 import { ControlesSerie } from "./ControlesSerie";
-import { CopiarUltima } from "./CopiarUltima";
-import { HudSesion } from "./HudSesion";
-import { e1rm } from "./metricas";
-import { NotasSerie } from "./NotasSerie";
-import { SecuenciaSeries } from "./SecuenciaSeries";
-import { SustituirSheet } from "./SustituirSheet";
 import { useUltimaSerieDe } from "./useUltimaSerieDe";
 import { VideoSheet } from "./VideoSheet";
 import type { EntradaSerie, PasoActual } from "./useSesionEntreno";
@@ -19,33 +14,23 @@ import type { EntradaSerie, PasoActual } from "./useSesionEntreno";
 interface SerieActivaProps {
   paso: PasoActual;
   sesion: Tables<"workout_sessions">;
-  logsDelEjercicioActual: Tables<"set_logs">[];
-  autoDescanso: boolean;
-  onAutoDescanso: (valor: boolean) => void;
   onConfirmar: (entrada: EntradaSerie) => void;
-  onSaltar: () => void;
-  onSustituir: (nuevoExerciseId: string, motivo: string) => void;
+  /** Sale a la pestana de Entreno DEJANDO la sesion viva (D31). */
   onSalir: () => void;
-  onTerminarSesion: () => void;
 }
 
 /**
- * La pantalla que decide el proyecto (spec §4.7). Sigue siendo secuencial
- * y bloqueante: una sola serie editable, un paso cada vez. La secuencia de
- * series de abajo y la cabecera del ejercicio son de solo lectura.
+ * La pantalla que decide el proyecto (spec §4.7). Secuencial y bloqueante:
+ * una sola serie editable, un paso cada vez.
+ *
+ * Recortada el 23/09/2026 (D39) a peticion de Alejandro, tras la primera
+ * prueba real en el gimnasio: solo el objetivo de la serie y los botones
+ * para rellenarla. El cronometro, pausar/terminar, RPE, e1RM en vivo,
+ * secuencia de series, copiar ultima, notas/etiquetas y sustituir/saltar
+ * salen de esta pantalla concreta -- se quedan en `SesionEnCurso`, la
+ * portada de la sesion en curso, que es donde se mira como va el entreno.
  */
-export function SerieActiva({
-  paso,
-  sesion,
-  logsDelEjercicioActual,
-  autoDescanso,
-  onAutoDescanso,
-  onConfirmar,
-  onSaltar,
-  onSustituir,
-  onSalir,
-  onTerminarSesion,
-}: SerieActivaProps) {
+export function SerieActiva({ paso, sesion, onConfirmar, onSalir }: SerieActivaProps) {
   const navigate = useNavigate();
   const ejercicio = useLiveQuery(
     () => db.exercises.get(paso.sessionExercise.exercise_id),
@@ -65,61 +50,42 @@ export function SerieActiva({
   // abajo, porque la ultima serie llega de Dexie despues del primer render.
   const [pesoElegido, setPesoElegido] = useState<number | null>(planned.target_weight);
   const [rir, setRir] = useState<number | null>(planned.target_rir);
-  const [rpe, setRpe] = useState<number | null>(null);
   const [isWarmup, setIsWarmup] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
-  const [notaAbierta, setNotaAbierta] = useState(false);
-  const [nota, setNota] = useState("");
-  const [sustituyendo, setSustituyendo] = useState(false);
   const [mostrandoVideo, setMostrandoVideo] = useState(false);
 
   const ultimaSerie = useUltimaSerieDe(paso.sessionExercise.exercise_id, sesion.id);
-  const esFuerza = !ejercicio || ejercicio.kind === "strength";
 
   // Cuando el Excel no pauta peso -- que es el caso de la rutina real: 0 de
   // sus 39 filas lo trae -- el punto de partida util es lo que se movio la
   // ultima vez, no un 0,0 kg que hay que subir a golpe de boton.
   const peso = pesoElegido ?? ultimaSerie?.peso ?? 0;
-  const e1rmEnVivo = esFuerza && peso > 0 && reps > 0 ? e1rm(peso, reps) : null;
 
-  const resumenRegistro = [
-    `Serie ${paso.numeroSerie}`,
-    esFuerza ? `${peso} kg` : null,
-    `${reps} reps`,
-    rir != null ? `RIR ${rir}` : null,
-    rpe != null ? `RPE ${rpe.toFixed(1)}` : null,
-  ]
+  const resumenRegistro = [`${peso} kg`, `${reps} reps`, rir != null ? `RIR ${rir}` : null]
     .filter(Boolean)
     .join(" · ");
 
   return (
     <div className="min-h-dvh bg-bg px-4 pt-safe">
-      <div className="sticky top-0 z-10 -mx-4 bg-bg/95 px-4 pb-2 pt-3 backdrop-blur">
-        <HudSesion iniciadaEn={sesion.started_at} onSalir={onSalir} onTerminar={onTerminarSesion} />
-      </div>
+      <button
+        type="button"
+        onClick={onSalir}
+        aria-label="Volver a Entreno sin terminar la sesión"
+        className="text-label-sm -ml-1 mt-3 flex h-touch shrink-0 items-center gap-1 rounded-button pr-2 font-mono uppercase tracking-wide text-text-muted active:bg-surface-2"
+      >
+        <MaterialIcon nombre="arrow_back" tamano={20} />
+        Entreno
+      </button>
 
-      <div className="space-y-3">
+      <div className="space-y-3 pt-2">
         <CabeceraEjercicio
           ejercicio={ejercicio}
           indice={paso.indiceEjercicio}
           total={paso.totalEjercicios}
           objetivo={planned}
           notaEntrenador={routineExercise?.notes ?? null}
-          e1rmEnVivo={e1rmEnVivo}
           onVerHistorial={() => navigate(`/entreno/ejercicio/${paso.sessionExercise.exercise_id}`)}
           onVerVideo={() => setMostrandoVideo(true)}
         />
-
-        {ultimaSerie && (
-          <CopiarUltima
-            peso={ultimaSerie.peso}
-            reps={ultimaSerie.reps}
-            onCopiar={() => {
-              if (ultimaSerie.peso != null) setPesoElegido(ultimaSerie.peso);
-              if (ultimaSerie.reps != null) setReps(ultimaSerie.reps);
-            }}
-          />
-        )}
 
         <ControlesSerie
           numeroSerie={paso.numeroSerie}
@@ -132,47 +98,9 @@ export function SerieActiva({
           onReps={setReps}
           rir={rir}
           onRir={setRir}
-          rpe={rpe}
-          onRpe={setRpe}
           isWarmup={isWarmup}
           onWarmup={setIsWarmup}
-          descansoSegundos={paso.descansoSegundos}
-          autoDescanso={autoDescanso}
-          onAutoDescanso={onAutoDescanso}
         />
-
-        <NotasSerie
-          tags={tags}
-          onTags={setTags}
-          nota={nota}
-          onNota={setNota}
-          abierta={notaAbierta}
-          onAbrir={() => setNotaAbierta(true)}
-        />
-
-        <section className="rounded-card border border-border bg-surface p-4">
-          <div className="mb-1 flex items-baseline justify-between gap-2">
-            <h2 className="text-label-md uppercase tracking-wide text-text-muted">Secuencia de series</h2>
-            <span className="text-label-md font-mono tabular-nums text-text-muted">
-              {logsDelEjercicioActual.length} de {paso.totalSeries}
-            </span>
-          </div>
-          <SecuenciaSeries
-            totalSeries={paso.totalSeries}
-            objetivo={planned}
-            logs={logsDelEjercicioActual}
-            numeroActual={paso.numeroSerie}
-          />
-        </section>
-
-        <div className="flex gap-3 pb-32">
-          <Button variant="secondary" className="flex-1" onClick={() => setSustituyendo(true)}>
-            Sustituir
-          </Button>
-          <Button variant="secondary" className="flex-1" onClick={onSaltar}>
-            Saltar
-          </Button>
-        </div>
       </div>
 
       {/* El registro vive en la zona del pulgar (design.md §1 y §5), no en
@@ -180,22 +108,13 @@ export function SerieActiva({
       <div className="pb-accion-safe fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/95 px-4 pt-3 backdrop-blur">
         <Button
           className="h-auto min-h-touch-primary py-2 leading-tight"
-          onClick={() => onConfirmar({ reps, peso, rir, rpe, tags, nota, isWarmup })}
+          onClick={() =>
+            onConfirmar({ reps, peso, rir, rpe: null, tags: [], nota: "", isWarmup })
+          }
         >
           Registrar {isWarmup ? "calentamiento · " : ""}{resumenRegistro}
         </Button>
       </div>
-
-      {sustituyendo && (
-        <SustituirSheet
-          exerciseActualId={paso.sessionExercise.exercise_id}
-          onCerrar={() => setSustituyendo(false)}
-          onSustituir={(nuevoId, motivo) => {
-            setSustituyendo(false);
-            onSustituir(nuevoId, motivo);
-          }}
-        />
-      )}
 
       {mostrandoVideo && ejercicio?.video_url && (
         <VideoSheet

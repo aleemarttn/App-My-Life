@@ -17,7 +17,10 @@ export function ModoEntreno() {
   const navigate = useNavigate();
   const sesion = useSesionEntreno();
   const [descanso, setDescanso] = useState<Descanso | null>(null);
-  const [autoDescanso, setAutoDescanso] = useAutoDescanso();
+  // El toggle de auto-inicio salio de la pantalla (D39): siempre se abre el
+  // descanso al confirmar. `useAutoDescanso` se queda solo en `localStorage`
+  // por si algun dia vuelve a exponerse desde Ajustes (D33).
+  const [autoDescanso] = useAutoDescanso();
 
   useWakeLock(!sesion.completada);
 
@@ -62,9 +65,6 @@ export function ModoEntreno() {
       key={`${paso.sessionExercise.id}-${paso.numeroSerie}`}
       paso={paso}
       sesion={sesionRow}
-      logsDelEjercicioActual={sesion.logsDelEjercicioActual}
-      autoDescanso={autoDescanso}
-      onAutoDescanso={setAutoDescanso}
       onConfirmar={(entrada) => {
         void sesion.confirmarSerie(entrada);
         if (!autoDescanso) return;
@@ -73,15 +73,10 @@ export function ModoEntreno() {
           segundos: paso.descansoSegundos,
         });
       }}
-      onSaltar={() => void sesion.saltarEjercicio()}
-      onSustituir={(nuevoId, motivo) => void sesion.sustituirEjercicio(nuevoId, motivo)}
       /* Salir NO cierra la sesion: sigue viva y la portada de Entreno la
-         enseña en curso (D31). Cerrarla es solo cosa de "Fin". */
+         enseña en curso (D31), donde tambien esta "Terminar entreno" (D39:
+         terminar a medias ya no es posible desde dentro de la serie). */
       onSalir={() => navigate("/entreno")}
-      onTerminarSesion={() => {
-        void sesion.terminarSesion();
-        navigate("/entreno");
-      }}
     />
   );
 }

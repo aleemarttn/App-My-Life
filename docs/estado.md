@@ -57,18 +57,30 @@
 
 ## Notas para la siguiente sesión
 
-- **23/09/2026 (tarde) — Primera prueba real en el gimnasio: dos fallos arreglados, rediseño de la
-  pantalla de serie activa en marcha.** Alejandro probó el modo entreno de pie, en el gimnasio.
-  Arreglado ya (D38): la carga y las reps se pueden teclear a mano tocando la cifra (los botones
-  +/- de 2,5 kg no llegan a un peso exacto con discos de 1 o 1,25 kg), y el botón de salir del
-  modo entreno lleva texto "Entreno" además del icono (antes era un icono gris pequeño y se quedó
-  sin poder salir). **Pendiente, esperando respuesta de Alejandro:** un rediseño más amplio de
-  `SerieActiva` — quiere volver a algo más parecido a la idea original (botones enormes,
-  proceso simple de rellenar reps/peso), con el objetivo de la serie bien visible arriba
-  ("Serie 1 de press banca · objetivo 80×5×RIR 2"), y sacando fuera de esa pantalla concreta buena
-  parte de lo añadido en D28-D34 (HUD, RPE, e1RM en vivo, secuencia de series, copiar última,
-  notas/etiquetas, sustituir/saltar) — todavía sin decidir qué de eso se queda, se mueve o se quita
-  del todo. No tocar `SerieActiva`/`ControlesSerie` de fondo hasta cerrar eso con él.
+- **23/09/2026 (tarde) — Primera prueba real en el gimnasio: dos fallos arreglados (D38) y la
+  pantalla de serie activa recortada a lo mínimo (D39).** Alejandro probó el modo entreno de pie,
+  en el gimnasio, y reportó tres cosas en la misma sesión:
+  1. La carga y las reps ya se pueden teclear a mano tocando la cifra (`ValorTecleable`, nuevo en
+     `ControlesSerie`): los botones +/- de 2,5 kg no llegan a un peso exacto con discos de 1 o
+     1,25 kg.
+  2. El botón de salir del modo entreno llevaba solo un icono gris pequeño y se quedó sin poder
+     salir de la pantalla (la barra de pestañas está oculta a propósito, D24 aplicado a
+     `/entreno/modo`). Arreglado con texto "← Entreno" visible.
+  3. **La pantalla en sí volvió a ser la del principio, no la acumulada por D28-D34.** Instrucción
+     explícita: *"ahí solo botones para rellenar serie, parte de objetivo... y ya. El resto se
+     queda pero en la pantalla anterior"*. `SerieActiva` ahora es: salida, cabecera con el
+     objetivo pautado completo (incluye RIR) y la nota del entrenador si la hay, y
+     `ControlesSerie` con carga/reps/RIR/calentamiento. Fuera de esta pantalla: HUD
+     (cronómetro/pausar/terminar), RPE, e1RM en vivo, secuencia de series, copiar última,
+     notas/etiquetas, sustituir/saltar y el toggle de auto-inicio del descanso. Ver D39.
+  - **Sin resolver todavía, pendiente de la siguiente prueba**: dónde vive exactamente cada cosa
+    que se sacó (`SesionEnCurso` ya tiene cronómetro + secuencia de series + terminar, pero RPE,
+    copiar última, notas y sustituir no se han trasladado, solo quitado) y si "Sustituir
+    ejercicio" necesita volver de alguna forma discreta dentro de la serie activa — tiene
+    utilidad real en pleno entreno si una máquina está ocupada. `HudSesion`, `NotasSerie`,
+    `CopiarUltima` y `SustituirSheet` se quedan como archivos sin usar, no se han borrado.
+  - 108 tests, lint y build en verde. Sin verificar todavía en el gimnasio esta versión recortada
+    — el ciclo de prueba sigue abierto.
 
 - **23/09/2026 — Capa LLM del importador de Excel, construida y desplegada, sin probar (D37).**
   Alejandro pidió acabar con lo pendiente de fase 1; los dos únicos puntos que quedaban eran no-código

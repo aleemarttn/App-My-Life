@@ -1,13 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { MaterialIcon } from "@/core/ui/MaterialIcon";
 import { Pill } from "@/core/ui/Pill";
-import { reloj, rpeEquivalente, textoReps } from "./formato";
+import { textoReps } from "./formato";
 import type { ObjetivoPautado } from "./formato";
 
 const RIR_OPCIONES = [0, 1, 2, 3, 4, 5];
 const INCREMENTOS_PESO = [-5, -2.5, 2.5, 5];
-const RPE_PASO = 0.5;
-const RPE_INICIAL = 8;
 
 function redondear(n: number): number {
   return Math.round(n * 100) / 100;
@@ -23,13 +20,12 @@ interface ValorTecleableProps {
 /**
  * El numero de la carga o de las reps, tocable para teclear un valor exacto.
  *
- * Bug real encontrado en el gimnasio (23/09/2026): los botones +/- de la
- * carga solo mueven de 2,5 en 2,5 kg (D-sin-numero de esta sesion, sobre
- * D28). Si el disco minimo del gimnasio es de 1 kg o de 1,25 kg, no hay
- * combinacion de esos botones que llegue al peso exacto. Se mantienen los
- * botones para el caso normal (mas rapido, sin teclado) y se anade este
- * teclado del sistema SOLO al tocar la cifra, para el caso en que hace
- * falta precision que los saltos fijos no dan.
+ * Bug real encontrado en el gimnasio (23/09/2026, D38): los botones +/- de
+ * la carga solo mueven de 2,5 en 2,5 kg. Si el disco minimo del gimnasio es
+ * de 1 kg o de 1,25 kg, no hay combinacion de esos botones que llegue al
+ * peso exacto. Se mantienen los botones para el caso normal (mas rapido,
+ * sin teclado) y se anade este teclado del sistema SOLO al tocar la cifra,
+ * para el caso en que hace falta precision que los saltos fijos no dan.
  */
 function ValorTecleable({ valor, onCambiar, ariaLabel, className }: ValorTecleableProps) {
   const [editando, setEditando] = useState(false);
@@ -94,21 +90,20 @@ interface ControlesSerieProps {
   onReps: (valor: number) => void;
   rir: number | null;
   onRir: (valor: number) => void;
-  rpe: number | null;
-  onRpe: (valor: number | null) => void;
   isWarmup: boolean;
   onWarmup: (valor: boolean) => void;
-  descansoSegundos: number;
-  autoDescanso: boolean;
-  onAutoDescanso: (valor: boolean) => void;
 }
 
 /**
- * Los controles con los que se registra una serie.
+ * Los controles con los que se registra una serie: carga, reps, RIR y
+ * calentamiento. Es la pantalla minima (spec §4.7): solo lo necesario para
+ * rellenar la serie y el objetivo pautado, nada mas.
  *
- * RIR y RPE son dos campos distintos, no dos nombres del mismo (D34): el
- * RIR es lo que pauta el entrenador y se marca de un toque; el RPE es como
- * se te hizo la serie y es opcional, en pasos de 0,5.
+ * Recortado el 23/09/2026 (D39) a peticion de Alejandro tras la primera
+ * prueba real en el gimnasio: RPE, e1RM, secuencia de series, copiar
+ * ultima, notas/etiquetas, sustituir/saltar y el auto-inicio del descanso
+ * salen de esta pantalla. Nada de eso se borra del modelo de datos ni del
+ * resto de la app -- ver D39 en decisiones.md para donde queda cada cosa.
  */
 export function ControlesSerie({
   numeroSerie,
@@ -121,13 +116,8 @@ export function ControlesSerie({
   onReps,
   rir,
   onRir,
-  rpe,
-  onRpe,
   isWarmup,
   onWarmup,
-  descansoSegundos,
-  autoDescanso,
-  onAutoDescanso,
 }: ControlesSerieProps) {
   const repsObjetivo = textoReps(objetivo);
   const rirObjetivo = objetivo.target_rir;
@@ -233,7 +223,7 @@ export function ControlesSerie({
         </div>
       </div>
 
-      <div className="mb-4">
+      <div>
         <div className="mb-2 flex items-baseline justify-between gap-2">
           <p className="text-label-md uppercase tracking-wide text-text-muted">
             RIR <span className="normal-case tracking-normal">· reps que me dejo</span>
@@ -267,77 +257,6 @@ export function ControlesSerie({
             );
           })}
         </div>
-      </div>
-
-      <div className="mb-4">
-        <div className="mb-2 flex items-baseline justify-between gap-2">
-          <p className="text-label-md uppercase tracking-wide text-text-muted">
-            RPE <span className="normal-case tracking-normal">· cómo se me ha hecho</span>
-          </p>
-          <p className="text-label-md text-text-faint">Opcional</p>
-        </div>
-        <div className="flex h-touch items-stretch overflow-hidden rounded-button border border-border">
-          <button
-            type="button"
-            onClick={() => onRpe(rpe == null ? RPE_INICIAL : Math.max(0, redondear(rpe - RPE_PASO)))}
-            aria-label="Bajar el RPE"
-            className="w-14 shrink-0 bg-surface-2 text-title-lg text-text active:bg-border"
-          >
-            −
-          </button>
-          <div className="flex flex-1 items-center justify-center gap-2 border-x border-border bg-surface-2/40">
-            <span className="font-mono text-metric-md tabular-nums text-text">
-              {rpe != null ? rpe.toFixed(1) : "—"}
-            </span>
-            {rpe != null && rir != null && rpe !== rpeEquivalente(rir) && (
-              <span className="text-caption text-accent-3">≠ RIR {rir}</span>
-            )}
-            {rpe != null && (
-              <button
-                type="button"
-                onClick={() => onRpe(null)}
-                aria-label="Quitar el RPE"
-                className="text-caption text-text-faint underline"
-              >
-                quitar
-              </button>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => onRpe(rpe == null ? RPE_INICIAL : Math.min(10, redondear(rpe + RPE_PASO)))}
-            aria-label="Subir el RPE"
-            className="w-14 shrink-0 bg-surface-2 text-title-lg text-accent active:bg-border"
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-3 rounded-button bg-surface-2 px-3 py-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <MaterialIcon nombre="schedule" tamano={18} className="shrink-0 text-accent-2" />
-          <div className="min-w-0">
-            <p className="text-label-md uppercase tracking-wide text-text-muted">Descanso sugerido</p>
-            <p className="font-mono text-metric-md tabular-nums text-text">{reloj(descansoSegundos)} min</p>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => onAutoDescanso(!autoDescanso)}
-          aria-pressed={autoDescanso}
-          className="text-label-sm flex h-10 shrink-0 items-center gap-2 rounded-button px-2 font-mono uppercase tracking-wide text-text-muted active:bg-surface-3"
-        >
-          Auto-inicio
-          <span
-            className={
-              "grid size-6 place-items-center rounded-card border " +
-              (autoDescanso ? "border-accent bg-accent text-on-accent" : "border-border text-transparent")
-            }
-          >
-            <MaterialIcon nombre="check" tamano={16} />
-          </span>
-        </button>
       </div>
     </section>
   );

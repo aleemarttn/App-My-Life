@@ -13,19 +13,19 @@ interface CabeceraEjercicioProps {
   objetivo: ObjetivoPautado;
   /** `routine_exercises.notes`: lo que escribio el entrenador para hoy. */
   notaEntrenador: string | null;
-  /** e1RM de la serie que se esta escribiendo ahora, o null si no aplica. */
-  e1rmEnVivo: number | null;
   onVerHistorial: () => void;
   onVerVideo: () => void;
 }
 
 /**
- * Cabecera del ejercicio en el modo entreno: donde estas dentro del dia,
- * que te toca hacer y por donde ibas.
+ * Cabecera del ejercicio en el modo entreno: donde estas dentro del dia y
+ * que te toca hacer. El objetivo sale tal cual del Excel importado
+ * (series, reps, peso y RIR pautados).
  *
- * El objetivo sale tal cual del Excel importado (series, reps y RIR
- * pautados). El e1RM es la unica lectura derivada de la pantalla y ya
- * existia desde D28.
+ * Recortada el 23/09/2026 (D39): el e1RM en vivo (D28) se saca de esta
+ * pantalla -- Alejandro, tras la primera prueba real en el gimnasio, pidio
+ * volver a una pantalla minima, solo objetivo + botones para rellenar la
+ * serie. Sigue viendose en el detalle del ejercicio, que no se toca.
  */
 export function CabeceraEjercicio({
   ejercicio,
@@ -33,7 +33,6 @@ export function CabeceraEjercicio({
   total,
   objetivo,
   notaEntrenador,
-  e1rmEnVivo,
   onVerHistorial,
   onVerVideo,
 }: CabeceraEjercicioProps) {
@@ -79,17 +78,7 @@ export function CabeceraEjercicio({
         <p className="text-title tabular-nums text-text">{objetivoSesion(objetivo)}</p>
       </div>
 
-      {notaEntrenador && <NotaEntrenador nota={notaEntrenador} className="mb-2" />}
-
-      <div className="rounded-card bg-surface-2 p-3">
-        <p className="text-label-md mb-0.5 uppercase tracking-wide text-text-muted">e1RM estimado</p>
-        <p className="font-mono text-metric-md tabular-nums text-accent-2">
-          {e1rmEnVivo != null ? `${e1rmEnVivo.toFixed(1)} kg` : "—"}
-          {e1rmEnVivo != null && (
-            <span className="text-caption ml-1 font-sans text-text-muted">(Epley)</span>
-          )}
-        </p>
-      </div>
+      {notaEntrenador && <NotaEntrenador nota={notaEntrenador} />}
     </section>
   );
 }
