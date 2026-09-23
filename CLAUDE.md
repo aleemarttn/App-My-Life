@@ -61,7 +61,7 @@ src/
 └── core/       db (Dexie + outbox) · supabase · xlsx · ui
 supabase/
 ├── migrations/
-└── functions/  parse-entry · telegram-webhook · health-ingest · scheduler-tick
+└── functions/  translate-routine · parse-entry · telegram-webhook · health-ingest · scheduler-tick
 docs/           spec.md · design.md · estado.md · decisiones.md
 ```
 

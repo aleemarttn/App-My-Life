@@ -34,6 +34,33 @@ export async function leerPrimeraHoja(archivo: File): Promise<HojaLeida> {
   return { nombre, filas: XLSX.utils.sheet_to_json<Record<string, unknown>>(hoja, { defval: "" }) };
 }
 
+export interface HojaCruda {
+  nombre: string;
+  /** Filas tal cual estan en la hoja, sin asumir que la fila 1 es cabecera. */
+  filas: string[][];
+}
+
+/**
+ * Lee TODAS las hojas del libro como texto plano, celda a celda, sin asumir
+ * que la primera fila es la cabecera de columnas del formato canonico.
+ *
+ * Para eso ya esta `leerPrimeraHoja`. Esta funcion es para cuando ese
+ * parseo falla: un Excel "como lo mandaria un entrenador de verdad" puede
+ * tener bloques de dia, celdas combinadas o varias hojas (una por semana),
+ * y hace falta el contenido crudo para traducirlo con IA (`translate-routine`).
+ */
+export async function leerLibroCrudo(archivo: File): Promise<HojaCruda[]> {
+  const XLSX = await import("xlsx");
+  const libro = XLSX.read(await archivo.arrayBuffer());
+
+  return libro.SheetNames.map((nombre) => {
+    const hoja = libro.Sheets[nombre];
+    if (!hoja) return { nombre, filas: [] };
+    const filas = XLSX.utils.sheet_to_json<unknown[]>(hoja, { header: 1, defval: "", blankrows: false });
+    return { nombre, filas: filas.map((fila) => fila.map((celda) => String(celda))) };
+  });
+}
+
 /**
  * Contraparte de `leerPrimeraHoja`: un libro con una hoja por elemento de
  * `hojas`, en el orden dado. Mismo motivo para el `import()` dinamico: no

@@ -3,7 +3,7 @@
 > **Este archivo se lee al empezar cada sesión de trabajo y se actualiza al terminarla.**
 > Es la memoria del proyecto entre sesiones. Si está desactualizado, la siguiente sesión trabaja a ciegas.
 
-**Última actualización:** 21/09/2026
+**Última actualización:** 23/09/2026
 **Fase actual:** ✅ **0 — Cimientos, COMPLETADA.** En curso: fase 1 — entrenamiento
 **Siguiente hito:** probar en el gimnasio el circuito completo — importar rutina, entrenarla y ver que sube
 
@@ -38,7 +38,7 @@
 ### Pendiente (fase 1)
 1. [ ] **Probar el modo entreno en el gimnasio** (`spec.md` §4.7, pantalla 3) — **sigue siendo el unico punto que falta de verdad.** Ya no es solo el prototipo del 16/09: desde entonces gano el importador real, el calendario, y el 18/09 el HUD de sesion, RPE, e1RM en vivo, copiar ultima sesion y el rediseno visual completo (D28-D30). Nada de eso sustituye la prueba fisica. `design.md` §7 y el registro de riesgos son tajantes: es la pantalla que decide el proyecto. Si registrar una serie no es comodo con una mano y sin mirar, se rehace.
 2. [x] **Importador de Excel (§4.6) — hecho el 17/09/2026.** Parseo y emparejamiento verificados contra `docs/plantillas/rutina-ejemplo.xlsx`; falta ejecutarlo contra la base real con sesión iniciada.
-3. [ ] **Aparcado a propósito (18/09/2026): capa LLM para leer cualquier formato de Excel.** El importador de hoy exige el formato canónico de columnas de §4.6, no un Excel "como lo mandaría un entrenador de verdad" (bloques de día, notación combinada "4x8-10", descanso en texto). Encaja exactamente con el patrón que §2.5/D2 ya describe para `parse-entry` —capa determinista primero, capa LLM solo de fallback, JSON estricto contra esquema— aplicado aquí a la Edge Function que traduciría el Excel libre al formato canónico antes de pasar por la validación y el emparejamiento ya construidos, que no cambiarían. Se decidió no construirla todavía: primero consolidar el formato fijo (hecho), luego la capa de IA. Falta elegir proveedor (Gemini/Claude/OpenAI) y el usuario tiene que poner la clave en secretos de Supabase —no se puede hacer desde aquí—.
+3. [x] **Capa LLM para leer Excel en formato libre — construida el 23/09/2026 (D37).** Edge Function `translate-routine` desplegada (`wcmtrjjalwbchrmlsvow`, v1, `verify_jwt: true`): cuando el Excel no es el formato canónico, un botón "Traducir con IA" en `ImportarRutinaScreen` manda **todas** las hojas en crudo a Gemini (cascada de 4 modelos, JSON estricto) y el resultado pasa directo por `validarFilas()` y el emparejador ya existentes, sin camino paralelo. Ver `docs/decisiones.md` D37. **Bloqueado hasta que Alejandro dé de alta el secreto `LLM_API_KEY`** en el proyecto de Supabase con una clave de Gemini — el MCP no tiene herramienta para escribir secretos, así que esto no se puede terminar desde aquí. **Sin probar con un Excel real de entrenador**: 108 tests, lint y build en verde, pero la traducción en sí no se ha ejecutado ni una vez.
 4. [x] **Calendario de la semana y detalle de ejercicio — hecho el 18/09/2026.** Ver nota de la sesión más abajo.
 5. [x] **`core/ui/MetricChart` y el patrón `DetailView` (§2.8) — hechos el 18/09/2026.** Los reutilizan todos los módulos siguientes (peso en Perfil, categoría de gasto en Dinero, consumo en Coche).
 6. [x] **Vídeo en hoja inferior — hecho el 18/09/2026 (tarde).** `core/ui/BottomSheet.tsx` (el componente del inventario de `design.md` §6 que faltaba) y `modules/training/VideoSheet.tsx`. Ver nota de la sesión más abajo.
@@ -56,6 +56,30 @@
 ---
 
 ## Notas para la siguiente sesión
+
+- **23/09/2026 — Capa LLM del importador de Excel, construida y desplegada, sin probar (D37).**
+  Alejandro pidió acabar con lo pendiente de fase 1; los dos únicos puntos que quedaban eran no-código
+  (probar en el gimnasio, y esta capa aparcada que necesitaba su decisión de proveedor). Eligió Gemini.
+  Se construyó la primera Edge Function real del proyecto, `translate-routine` (desplegada v1 por el
+  MCP de Supabase, `verify_jwt: true`): lee todas las hojas del Excel en crudo (`leerLibroCrudo` nuevo
+  en `core/xlsx.ts`, sin asumir cabecera), las manda a Gemini con la misma cascada de 4 modelos que
+  `analizar-imagen` de NutriGasto, y el JSON que devuelve pasa **directo** por `validarFilas()` y
+  `emparejar()` — cero código nuevo de validación, la pantalla de revisión y confirmación es la misma
+  de siempre. Botón "Traducir con IA" en `ImportarRutinaScreen` solo aparece cuando falta una columna
+  obligatoria (no para errores de datos en filas concretas). Aviso visible en el resumen cuando las
+  filas vienen de la IA, pidiendo revisar con más cuidado. `importarIA.ts` nuevo (llama a la función
+  vía `supabase.functions.invoke`, única excepción razonada al "la UI nunca escribe en Supabase":
+  esto no escribe datos, traduce).
+  - **Bloqueante real, no se puede resolver desde aquí:** falta el secreto `LLM_API_KEY` (clave de
+    Gemini) en el proyecto de Supabase `wcmtrjjalwbchrmlsvow`. El MCP no tiene herramienta para
+    secretos. Alejandro tiene que ponerlo a mano, por dashboard (Project Settings → Edge Functions →
+    Secrets) o CLI (`supabase secrets set LLM_API_KEY=... --project-ref wcmtrjjalwbchrmlsvow`).
+  - **Sin verificar de extremo a extremo**: sin la clave puesta no se ha podido probar la traducción
+    con un Excel real de entrenador (bloques de día, "4x8-10", descanso en texto). 108 tests, lint y
+    build en verde, pero eso solo cubre lo que ya cubría antes — no hay test nuevo de esta función
+    (Edge Function con llamada a un LLM externo, no hay infraestructura de test para eso en el repo).
+  - Documentación: D37 en `decisiones.md`, punto 3 de "Pendiente (fase 1)" marcado hecho con el
+    matiz de que sigue bloqueado, `CLAUDE.md` y `.env.example` actualizados con la función nueva.
 
 - **21/09/2026 — Calentamientos y tipos de Supabase.** El modo entreno ya permite marcar
   una serie como calentamiento. Se guarda en `set_logs.is_warmup`; el indice de escritura

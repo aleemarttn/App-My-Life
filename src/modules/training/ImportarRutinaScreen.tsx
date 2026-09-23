@@ -2,11 +2,12 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { useNavigate } from "react-router";
 import { db } from "@/core/db";
-import { leerPrimeraHoja } from "@/core/xlsx";
+import { leerLibroCrudo, leerPrimeraHoja } from "@/core/xlsx";
 import { Button } from "@/core/ui/Button";
 import { Card } from "@/core/ui/Card";
 import { emparejar } from "./importarEmparejar";
 import type { Emparejamiento } from "./importarEmparejar";
+import { traducirConIA } from "./importarIA";
 import { validarFilas } from "./importarFormato";
 import type { ErrorFila, FilaRutina } from "./importarFormato";
 import { importarRutina } from "./importarRutina";
@@ -55,40 +56,79 @@ export function ImportarRutinaScreen() {
   const [nombreRutina, setNombreRutina] = useState("");
   const [nombreArchivo, setNombreArchivo] = useState("");
   const [resumen, setResumen] = useState<ResumenImportacion | null>(null);
+  const [archivo, setArchivo] = useState<File | null>(null);
+  const [traduciendo, setTraduciendo] = useState(false);
+  const [traducidoConIA, setTraducidoConIA] = useState(false);
 
-  async function alElegirArchivo(archivo: File): Promise<void> {
+  /**
+   * Comun a las dos entradas del importador: el Excel canonico leido tal
+   * cual y las filas que ha devuelto la traduccion con IA. A partir de aqui
+   * todo es identico -- validacion y emparejamiento no distinguen el origen.
+   */
+  function procesarFilas(brutas: Record<string, unknown>[], nombreSugerido: string): boolean {
+    const validacion = validarFilas(brutas);
+
+    setColumnasAusentes(validacion.columnasAusentes);
+    if (validacion.errores.length > 0) {
+      setErrores(validacion.errores);
+      return false;
+    }
+    if (validacion.filas.length === 0) {
+      setFallo("El archivo no tiene ninguna fila con datos.");
+      return false;
+    }
+
+    const nombres = [...new Set(validacion.filas.map((f) => f.ejercicio))];
+    const emparejados = emparejar(nombres, catalogo);
+
+    const iniciales = new Map<string, Resolucion>();
+    for (const e of emparejados) {
+      if (e.propuesta) iniciales.set(e.nombreExcel, { tipo: "existente", id: e.propuesta.id });
+    }
+
+    setFilas(validacion.filas);
+    setEmparejamientos(emparejados);
+    setResoluciones(iniciales);
+    setNombreRutina(nombreSugerido);
+    setFase("revisar");
+    return true;
+  }
+
+  async function alElegirArchivo(archivoElegido: File): Promise<void> {
     setFallo(null);
     setErrores([]);
+    setTraducidoConIA(false);
+    setArchivo(archivoElegido);
+    setNombreArchivo(archivoElegido.name);
     try {
-      const hoja = await leerPrimeraHoja(archivo);
-      const validacion = validarFilas(hoja.filas);
-
-      setColumnasAusentes(validacion.columnasAusentes);
-      if (validacion.errores.length > 0) {
-        setErrores(validacion.errores);
-        return;
-      }
-      if (validacion.filas.length === 0) {
-        setFallo("El archivo no tiene ninguna fila con datos.");
-        return;
-      }
-
-      const nombres = [...new Set(validacion.filas.map((f) => f.ejercicio))];
-      const emparejados = emparejar(nombres, catalogo);
-
-      const iniciales = new Map<string, Resolucion>();
-      for (const e of emparejados) {
-        if (e.propuesta) iniciales.set(e.nombreExcel, { tipo: "existente", id: e.propuesta.id });
-      }
-
-      setFilas(validacion.filas);
-      setEmparejamientos(emparejados);
-      setResoluciones(iniciales);
-      setNombreRutina(hoja.nombre);
-      setNombreArchivo(archivo.name);
-      setFase("revisar");
+      const hoja = await leerPrimeraHoja(archivoElegido);
+      procesarFilas(hoja.filas, hoja.nombre);
     } catch (error) {
       setFallo(error instanceof Error ? error.message : "No se pudo leer el archivo.");
+    }
+  }
+
+  /**
+   * Capa LLM (spec §4.6, "aparcada el 18/09/2026", construida el
+   * 23/09/2026): solo se ofrece cuando la capa determinista ya ha fallado.
+   * El resultado pasa por el mismo `procesarFilas` de arriba -- si la IA se
+   * equivoca en una fila, salen los mismos errores que con un Excel
+   * canonico mal rellenado.
+   */
+  async function traducirConIAYReintentar(): Promise<void> {
+    if (!archivo) return;
+    setTraduciendo(true);
+    setFallo(null);
+    try {
+      const hojas = await leerLibroCrudo(archivo);
+      const brutas = await traducirConIA(hojas);
+      setErrores([]);
+      const ok = procesarFilas(brutas, archivo.name.replace(/\.[^.]+$/, ""));
+      if (ok) setTraducidoConIA(true);
+    } catch (error) {
+      setFallo(error instanceof Error ? error.message : "No se pudo traducir el archivo con IA.");
+    } finally {
+      setTraduciendo(false);
     }
   }
 
@@ -132,6 +172,10 @@ export function ImportarRutinaScreen() {
     );
   }
 
+  // Solo cuando falta una columna obligatoria (fila:0) tiene sentido ofrecer
+  // la traduccion: un error de datos en una fila concreta no lo arregla.
+  const formatoIncompatible = errores.some((e) => e.fila === 0);
+
   if (fase === "elegir") {
     return (
       <div className="space-y-3">
@@ -147,8 +191,8 @@ export function ImportarRutinaScreen() {
               accept=".xlsx,.xls,.csv"
               className="sr-only"
               onChange={(e) => {
-                const archivo = e.target.files?.[0];
-                if (archivo) void alElegirArchivo(archivo);
+                const elegido = e.target.files?.[0];
+                if (elegido) void alElegirArchivo(elegido);
               }}
             />
           </label>
@@ -173,6 +217,18 @@ export function ImportarRutinaScreen() {
             </ul>
             {errores.length > 30 && (
               <p className="text-caption mt-2 text-text-faint">y {errores.length - 30} más…</p>
+            )}
+            {formatoIncompatible && (
+              <div className="mt-4 border-t border-border pt-3">
+                <p className="text-body mb-3 text-text-muted">
+                  Si es un Excel del entrenador que no sigue la plantilla, prueba a traducirlo con IA.
+                  Se lee entero (todas las hojas) y se manda a Gemini solo para reordenarlo en el
+                  formato de arriba; nada se importa todavía.
+                </p>
+                <Button variant="secondary" onClick={() => void traducirConIAYReintentar()} disabled={traduciendo}>
+                  {traduciendo ? "Traduciendo con IA…" : "Traducir con IA"}
+                </Button>
+              </div>
             )}
           </Card>
         )}
@@ -205,6 +261,12 @@ export function ImportarRutinaScreen() {
         {columnasAusentes.length > 0 && (
           <p className="text-caption mt-2 text-warning">
             Sin columna: {columnasAusentes.join(", ")}. Si era un error de nombre, cancela y corrígelo.
+          </p>
+        )}
+        {traducidoConIA && (
+          <p className="text-caption mt-2 text-accent-2">
+            Traducido con IA a partir del Excel original: revisa series, reps, peso y descanso con más
+            cuidado de lo habitual antes de confirmar.
           </p>
         )}
       </Card>
