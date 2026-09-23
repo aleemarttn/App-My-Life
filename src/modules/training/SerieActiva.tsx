@@ -76,7 +76,11 @@ export function SerieActiva({ paso, sesion, onConfirmar, onSalir }: SerieActivaP
         Entreno
       </button>
 
-      <div className="space-y-3 pt-2">
+      {/* pb-32: deja hueco de sobra para que el ultimo bloque (RIR) no quede
+          tapado por el boton fijo de "Registrar". Sin el, con la pantalla
+          recortada (D39) el contenido apenas llega a la altura de la
+          pantalla y no hay ni un pixel de mas que deslizar para revelarlo. */}
+      <div className="space-y-3 pt-2 pb-32">
         <CabeceraEjercicio
           ejercicio={ejercicio}
           indice={paso.indiceEjercicio}
